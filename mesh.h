@@ -24,6 +24,9 @@ public:
 
 Mesh::Mesh()
 {
+  position[0] = 0;
+  position[1] = 0;
+  position[2] = 0;
   logDebug("Initializing Mesh");
 
   obj = new cObj("male.obj");
@@ -90,13 +93,13 @@ void Mesh::draw(const mat4x4 camera) const
    glBindVertexArray(vao);
    glUniformMatrix4fv(shader->uMvp, 1, GL_FALSE, (const GLfloat*)mvp);
    glUniformMatrix4fv(shader->uCamera, 1, GL_FALSE, (const GLfloat*)camera);
-   glDrawArrays(GL_TRIANGLES, 0, obj->faces.size()*6);
+   glDrawArrays(GL_TRIANGLE_STRIP, 0, obj->faces.size()*3);
    glBindVertexArray(0);
 }
 
 void Mesh::update()
 {
-  position[1] += 0.005f;
+  position[0] -= 0.001f;
 }
 
 void Mesh::getMvp(mat4x4 m) const
