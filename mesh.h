@@ -9,9 +9,10 @@ class Mesh
 {
 private:
   GLuint vao;
-  GLuint vbo;
+  GLuint vbo, nbo;
   Shader* shader;
   std::vector<float> vertices;
+  std::vector<float> normals;
 
   void getMvp(mat4x4 m) const;
 public:
@@ -26,26 +27,32 @@ Mesh::Mesh()
 {
   position[0] = 0;
   position[1] = 0;
-  position[2] = 0;
+  position[2] = 0.2;
   rotation[0] = 0;
   rotation[1] = 0;
   rotation[2] = 0;
-  scale = 0.5f;
+  scale = 0.05f;
   logDebug("Initializing Mesh");
 
-  auto obj = cObj("stack.obj");
-  vertices = obj.renderVertices();
+  auto obj = cObj("male.obj");
+  obj.renderBuffers(vertices, normals);
 
 
   // Generate objects on GPU
   glGenVertexArrays(1, &vao);
   glGenBuffers(1, &vbo);
+  glGenBuffers(1, &nbo);
 
   glBindVertexArray(vao);
 
   // Fill vertices
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(float), vertices.data(), GL_STATIC_DRAW);
+
+  // Fill vertices
+  glBindBuffer(GL_ARRAY_BUFFER, nbo);
+  glBufferData(GL_ARRAY_BUFFER, normals.size()*sizeof(float), normals.data(), GL_STATIC_DRAW);
+
 
   // Create shader
   shader = new Shader();
@@ -54,6 +61,15 @@ Mesh::Mesh()
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glVertexAttribPointer(
       shader->vPos,
+      3,
+      GL_FLOAT,
+      GL_FALSE,
+      0,
+      (void*)(sizeof(float) * 0));
+
+  glBindBuffer(GL_ARRAY_BUFFER, nbo);
+  glVertexAttribPointer(
+      shader->vNormal,
       3,
       GL_FLOAT,
       GL_FALSE,

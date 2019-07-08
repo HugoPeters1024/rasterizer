@@ -49,17 +49,17 @@ struct face {
 };
 
 class cObj {
-  public:
+  private:
     std::vector<vertex> vertices;
     std::vector<vertex> texcoords;
     std::vector<vertex> normals;
     std::vector<vertex> parameters;
     std::vector<face> faces;
-
+  public:
     cObj(std::string filename);
     ~cObj();
 
-    std::vector<float> renderVertices();
+  void renderBuffers(std::vector<float> &v_buf, std::vector<float> &n_buf) const;
 };
 
 cObj::cObj(std::string filename) {
@@ -136,60 +136,99 @@ cObj::cObj(std::string filename) {
     std::cout << "              Faces: " << faces.size() << std::endl << std::endl;
 }
 
-std::vector<float> cObj::renderVertices()
+void cObj::renderBuffers(std::vector<float> &v_buf, std::vector<float> &n_buf) const
 {
-  std::vector<float> result;
   for(face f : faces)
   {
-    if (f.vertex.size() == 3)
+    if (f.vertex.size() == 3 && f.normal.size() == 3)
     {
-      for(int i : f.vertex)
+      for(int i = 0; i<3; i++)
       {
-        result.push_back(vertices[i].v[0]);
-        result.push_back(vertices[i].v[1]);
-        result.push_back(vertices[i].v[2]);
+        int vi = f.vertex[i];
+        int ni = f.normal[i];
+        v_buf.push_back(vertices[vi].v[0]);
+        v_buf.push_back(vertices[vi].v[1]);
+        v_buf.push_back(vertices[vi].v[2]);
+
+        n_buf.push_back(normals[ni].v[0]);
+        n_buf.push_back(normals[ni].v[0]);
+        n_buf.push_back(normals[ni].v[0]);
       }
     }
-    else if (f.vertex.size() == 4)
+    else if (f.vertex.size() == 4 && f.normal.size() == 4)
     {
+        // Extract the 4 vertices
         vertex v1 = vertices[f.vertex[0]];
         vertex v2 = vertices[f.vertex[1]];
         vertex v3 = vertices[f.vertex[2]];
         vertex v4 = vertices[f.vertex[3]];
+
+        // Extract the 4 normals
+        vertex n1 = normals[f.normal[0]];
+        vertex n2 = normals[f.normal[1]];
+        vertex n3 = normals[f.normal[2]];
+        vertex n4 = normals[f.normal[3]];
+
+
         // Triangle 1
-        result.push_back(v1.v[0]);
-        result.push_back(v1.v[1]);
-        result.push_back(v1.v[2]);
+        v_buf.push_back(v1.v[0]);
+        v_buf.push_back(v1.v[1]);
+        v_buf.push_back(v1.v[2]);
 
-        result.push_back(v2.v[0]);
-        result.push_back(v2.v[1]);
-        result.push_back(v2.v[2]);
+        v_buf.push_back(v2.v[0]);
+        v_buf.push_back(v2.v[1]);
+        v_buf.push_back(v2.v[2]);
 
-        result.push_back(v3.v[0]);
-        result.push_back(v3.v[1]);
-        result.push_back(v3.v[2]);
+        v_buf.push_back(v3.v[0]);
+        v_buf.push_back(v3.v[1]);
+        v_buf.push_back(v3.v[2]);
 
         // Triangle 2
-        result.push_back(v1.v[0]);
-        result.push_back(v1.v[1]);
-        result.push_back(v1.v[2]);
+        v_buf.push_back(v1.v[0]);
+        v_buf.push_back(v1.v[1]);
+        v_buf.push_back(v1.v[2]);
 
-        result.push_back(v3.v[0]);
-        result.push_back(v3.v[1]);
-        result.push_back(v3.v[2]);
+        v_buf.push_back(v3.v[0]);
+        v_buf.push_back(v3.v[1]);
+        v_buf.push_back(v3.v[2]);
 
-        result.push_back(v4.v[0]);
-        result.push_back(v4.v[1]);
-        result.push_back(v4.v[2]);
+        v_buf.push_back(v4.v[0]);
+        v_buf.push_back(v4.v[1]);
+        v_buf.push_back(v4.v[2]);
+
+        // Triangle 1 Normals
+        n_buf.push_back(n1.v[0]);
+        n_buf.push_back(n1.v[1]);
+        n_buf.push_back(n1.v[2]);
+
+        n_buf.push_back(n2.v[0]);
+        n_buf.push_back(n2.v[1]);
+        n_buf.push_back(n2.v[2]);
+
+        n_buf.push_back(n3.v[0]);
+        n_buf.push_back(n3.v[1]);
+        n_buf.push_back(n3.v[2]);
+
+        // Triangle 2 Normals
+        n_buf.push_back(n1.v[0]);
+        n_buf.push_back(n1.v[1]);
+        n_buf.push_back(n1.v[2]);
+
+        n_buf.push_back(n3.v[0]);
+        n_buf.push_back(n3.v[1]);
+        n_buf.push_back(n3.v[2]);
+
+        n_buf.push_back(n4.v[0]);
+        n_buf.push_back(n4.v[1]);
+        n_buf.push_back(n4.v[2]);
     }
     else
     {
-      logError("Cannot serialize a model that has %i result per face", f.vertex.size());
+      logError("Cannot serialize a model that has %i vertices and %i normals per face", f.vertex.size(), f.normal.size());
       exit(4);
     }
   }
-  logDebug("Expanded %i faces to %i coordinates", faces.size(), result.size());
-  return result;
+  logDebug("Expanded %zu faces to %zu coordinates", faces.size(), v_buf.size());
 }
 
 cObj::~cObj() { }

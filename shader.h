@@ -32,7 +32,7 @@ private:
   static const char* fs_src;
 
 public:
-  GLint vPos, uMvp, uCamera;
+  GLint vPos, vNormal, uMvp, uCamera;
   GLuint program;
   Shader();
 
@@ -51,10 +51,12 @@ Shader::Shader()
   glLinkProgram(program);
 
   vPos = glGetAttribLocation(program, "vPos");
+  vNormal = glGetAttribLocation(program, "vNormal");
   uMvp = glGetUniformLocation(program, "uMvp");
   uCamera = glGetUniformLocation(program, "uCamera");
 
   glEnableVertexAttribArray(vPos);
+  glEnableVertexAttribArray(vNormal);
 
   logDebug("a%i: \t vPos", vPos);
   logDebug("u%i: \t uMvp", uMvp);
@@ -73,16 +75,19 @@ void Shader::bind()
 const char* Shader::vs_src = R"(
 #version 330 core
 layout(location = 0) in vec3 vPos;
+layout(location = 1) in vec3 vNormal;
 
 uniform mat4 uMvp;
 uniform mat4 uCamera;
 
 out vec3 pos;
+out vec3 normal;
 
 
 void main() {
    gl_Position = uCamera * uMvp * vec4(vPos, 1);
    pos = gl_Position.xyz;
+   normal = normalize(uCamera * uMvp * vec4(vNormal, 0)).xyz;
 })";
 
 const char* Shader::fs_src = R"(
@@ -90,7 +95,12 @@ const char* Shader::fs_src = R"(
 out vec4 color;
 
 in vec3 pos;
+in vec3 normal;
 
 void main() {
-  color = vec4(1, 1, 1, 1);
+  vec3 light = vec3(0, 5, 0);
+  vec3 lightCol = vec3(1, 1, 1);
+  vec3 lightDir = normalize(light - pos);
+  float theta = max(dot(lightDir, normal), 0) + 0.2f;
+  color = vec4(lightCol * theta, 1);
 })";
