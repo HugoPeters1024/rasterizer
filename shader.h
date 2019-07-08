@@ -82,7 +82,7 @@ out vec3 pos;
 
 void main() {
    gl_Position = uCamera * uMvp * vec4(vPos, 1);
-   pos = vPos;
+   pos = gl_Position.xyz;
 })";
 
 const char* Shader::fs_src = R"(
@@ -92,5 +92,5 @@ out vec4 color;
 in vec3 pos;
 
 void main() {
-  color = vec4(1, 1, 1, 1); 
+  color = vec4(1, 1, 1, 1);
 })";

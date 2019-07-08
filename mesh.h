@@ -11,7 +11,7 @@ private:
   GLuint vao;
   GLuint vbo;
   Shader* shader;
-  cObj* obj;
+  std::vector<float> vertices;
 
   void getMvp(mat4x4 m) const;
 public:
@@ -27,35 +27,15 @@ Mesh::Mesh()
   position[0] = 0;
   position[1] = 0;
   position[2] = 0;
+  rotation[0] = 0;
+  rotation[1] = 0;
+  rotation[2] = 0;
+  scale = 0.5f;
   logDebug("Initializing Mesh");
 
-  obj = new cObj("male.obj");
+  auto obj = cObj("stack.obj");
+  vertices = obj.renderVertices();
 
-  float* triangleData = (float*)malloc(9*sizeof(float));
-  triangleData[0] = 0;
-  triangleData[1] = -1;
-  triangleData[2] = 0;
-
-  triangleData[3] = 1;
-  triangleData[4] = 1;
-  triangleData[5] = 0;
-
-  triangleData[6] = -1;
-  triangleData[7] = 1;
-  triangleData[8] = 0;
-
-  std::vector<float> vertices;
-  for(face f : obj->faces)
-  {
-    for(int i : f.vertex)
-    {
-      printf("%i\n", i);
-      vertices.push_back(obj->vertices[i].v[0]);
-      vertices.push_back(obj->vertices[i].v[1]);
-      vertices.push_back(obj->vertices[i].v[2]);
-    }
-    printf("\n");
-  }
 
   // Generate objects on GPU
   glGenVertexArrays(1, &vao);
@@ -93,20 +73,37 @@ void Mesh::draw(const mat4x4 camera) const
    glBindVertexArray(vao);
    glUniformMatrix4fv(shader->uMvp, 1, GL_FALSE, (const GLfloat*)mvp);
    glUniformMatrix4fv(shader->uCamera, 1, GL_FALSE, (const GLfloat*)camera);
-   glDrawArrays(GL_TRIANGLE_STRIP, 0, obj->faces.size()*3);
+   glDrawArrays(GL_TRIANGLES, 0, vertices.size());
    glBindVertexArray(0);
 }
 
 void Mesh::update()
 {
-  position[0] -= 0.001f;
+  rotation[1] += 0.005f;
+  rotation[0] += 0.005f;
 }
 
-void Mesh::getMvp(mat4x4 m) const
+void Mesh::getMvp(mat4x4 f) const
 {
-  mat4x4_identity(m);
-  mat4x4_translate(m, position[0], position[1], position[2]);
-  mat4x4_scale(m, m, 0.002f);
+  mat4x4 i, rx, ry, rz, t, s;
+  mat4x4_identity(i);
+  mat4x4_identity(rx);
+  mat4x4_identity(ry);
+  mat4x4_identity(rz);
+  mat4x4_identity(t);
+  mat4x4_identity(s);
+  mat4x4_identity(f);
+  mat4x4_translate(t, position[0], position[1], position[2]);
+  mat4x4_scale_aniso(s, i, scale, scale, scale);
+  mat4x4_rotate_X(rx, i, rotation[0]);
+  mat4x4_rotate_Y(ry, i, rotation[1]);
+  mat4x4_rotate_Z(rz, i, rotation[2]);
+  mat4x4_mul(f, s, f);
+  mat4x4_mul(f, f, rx);
+  mat4x4_mul(f, f, ry);
+  mat4x4_mul(f, f, rz);
+  mat4x4_mul(f, f, t);
+
 //  mat4x4_rotate(m, m, 1, 0, 0, rotation[0]);
  // mat4x4_rotate(m, m, 0, 1, 0, rotation[1]);
   //mat4x4_rotate(m, m, 0, 0, 1, rotation[2]);

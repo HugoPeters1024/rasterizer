@@ -68,6 +68,10 @@ int main(int argc, char** argv) {
   const GLubyte* version = glGetString(GL_VERSION);
   logDebug("OpenGL version:\t%s", version);
 
+
+  //glCullFace(GL_FRONT_AND_BACK);
+  glEnable(GL_DEPTH_TEST);
+
   logInfo("startup completed");
 
   app = new Application();
@@ -75,12 +79,11 @@ int main(int argc, char** argv) {
 
   while(!(glfwWindowShouldClose(window) | app->shouldClose()))
   {
-     glCullFace(GL_FRONT_AND_BACK);
      int w, h;
      glfwGetFramebufferSize(window, &w, &h);
 
      glViewport(0, 0, w, h);
-     glClear(GL_COLOR_BUFFER_BIT);
+     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
      glfwPollEvents();
      app->loop(w, h);

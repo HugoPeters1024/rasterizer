@@ -247,7 +247,7 @@ static inline void mat4x4_sub(mat4x4 M, mat4x4 a, mat4x4 b)
 }
 static inline void mat4x4_scale(mat4x4 M, mat4x4 a, float k)
 {
-	for(int i=0; i<4; ++i)
+	for(int i=0; i<3; ++i)
 		vec4_scale(M[i], a[i], k);
 }
 static inline void mat4x4_scale_aniso(mat4x4 M, mat4x4 a, float x, float y, float z)

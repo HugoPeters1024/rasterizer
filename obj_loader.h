@@ -58,6 +58,8 @@ class cObj {
 
     cObj(std::string filename);
     ~cObj();
+
+    std::vector<float> renderVertices();
 };
 
 cObj::cObj(std::string filename) {
@@ -132,6 +134,62 @@ cObj::cObj(std::string filename) {
     std::cout << "Texture Coordinates: " << texcoords.size() << std::endl;
     std::cout << "            Normals: " << normals.size() << std::endl;
     std::cout << "              Faces: " << faces.size() << std::endl << std::endl;
+}
+
+std::vector<float> cObj::renderVertices()
+{
+  std::vector<float> result;
+  for(face f : faces)
+  {
+    if (f.vertex.size() == 3)
+    {
+      for(int i : f.vertex)
+      {
+        result.push_back(vertices[i].v[0]);
+        result.push_back(vertices[i].v[1]);
+        result.push_back(vertices[i].v[2]);
+      }
+    }
+    else if (f.vertex.size() == 4)
+    {
+        vertex v1 = vertices[f.vertex[0]];
+        vertex v2 = vertices[f.vertex[1]];
+        vertex v3 = vertices[f.vertex[2]];
+        vertex v4 = vertices[f.vertex[3]];
+        // Triangle 1
+        result.push_back(v1.v[0]);
+        result.push_back(v1.v[1]);
+        result.push_back(v1.v[2]);
+
+        result.push_back(v2.v[0]);
+        result.push_back(v2.v[1]);
+        result.push_back(v2.v[2]);
+
+        result.push_back(v3.v[0]);
+        result.push_back(v3.v[1]);
+        result.push_back(v3.v[2]);
+
+        // Triangle 2
+        result.push_back(v1.v[0]);
+        result.push_back(v1.v[1]);
+        result.push_back(v1.v[2]);
+
+        result.push_back(v3.v[0]);
+        result.push_back(v3.v[1]);
+        result.push_back(v3.v[2]);
+
+        result.push_back(v4.v[0]);
+        result.push_back(v4.v[1]);
+        result.push_back(v4.v[2]);
+    }
+    else
+    {
+      logError("Cannot serialize a model that has %i result per face", f.vertex.size());
+      exit(4);
+    }
+  }
+  logDebug("Expanded %i faces to %i coordinates", faces.size(), result.size());
+  return result;
 }
 
 cObj::~cObj() { }
