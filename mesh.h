@@ -16,7 +16,7 @@ private:
 
   void getMvp(mat4x4 m) const;
 public:
-  vec3 position, rotation;
+  vec3 position, rotation, anchor;
   float scale;
   Mesh();
   void draw(const mat4x4 camera) const;
@@ -27,11 +27,12 @@ Mesh::Mesh()
 {
   position[0] = 0;
   position[1] = 0;
-  position[2] = 1.2f;
+  position[2] = 20.5f;
   rotation[0] = 0;
   rotation[1] = 0;
   rotation[2] = 0;
-  scale = 0.05f;
+
+  scale = 1;
   logDebug("Initializing Mesh");
 
   auto obj = cObj("male.obj");
@@ -96,7 +97,6 @@ void Mesh::draw(const mat4x4 camera) const
 void Mesh::update()
 {
   rotation[1] += 0.05f;
-  rotation[0] += 0.02f;
 }
 
 void Mesh::getMvp(mat4x4 f) const
@@ -109,7 +109,7 @@ void Mesh::getMvp(mat4x4 f) const
   mat4x4_identity(t);
   mat4x4_identity(s);
   mat4x4_identity(f);
-  mat4x4_translate(t, position[0], position[1], position[2]);
+  mat4x4_translate(t, position[0], position[1], -position[2]);
   mat4x4_scale_aniso(s, i, scale, scale, scale);
   mat4x4_rotate_X(rx, i, rotation[0]);
   mat4x4_rotate_Y(ry, i, rotation[1]);

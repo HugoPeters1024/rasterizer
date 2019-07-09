@@ -71,6 +71,7 @@ int main(int argc, char** argv) {
 
   //glCullFace(GL_FRONT_AND_BACK);
   glEnable(GL_DEPTH_TEST);
+  glfwSwapInterval(1); //vsync
 
   logInfo("startup completed");
 

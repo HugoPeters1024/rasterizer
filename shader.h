@@ -32,7 +32,7 @@ private:
   static const char* fs_src;
 
 public:
-  GLint vPos, vNormal, uMvp, uCamera;
+  GLint vPos, vNormal, uMvp, uCamera, uCameraPos;
   GLuint program;
   Shader();
 
@@ -54,6 +54,7 @@ Shader::Shader()
   vNormal = glGetAttribLocation(program, "vNormal");
   uMvp = glGetUniformLocation(program, "uMvp");
   uCamera = glGetUniformLocation(program, "uCamera");
+  uCameraPos = glGetUniformLocation(program, "uCameraPos");
 
   glEnableVertexAttribArray(vPos);
   glEnableVertexAttribArray(vNormal);
@@ -61,6 +62,7 @@ Shader::Shader()
   logDebug("a%i: \t vPos", vPos);
   logDebug("u%i: \t uMvp", uMvp);
   logDebug("u%i: \t uCamera", uCamera);
+  logDebug("u%i: \t uCameraPos", uCameraPos);
 
   logDebug("Done initializing shader");
 }
@@ -85,9 +87,10 @@ out vec3 normal;
 
 
 void main() {
-   gl_Position = uCamera * uMvp * vec4(vPos, 1);
-   pos = gl_Position.xyz;
-   normal = normalize(uCamera * uMvp * vec4(vNormal, 0)).xyz;
+   vec4 worldPos = uMvp * vec4(vPos, 1);
+   gl_Position = uCamera * worldPos; 
+   pos = worldPos.xyz;
+   normal = normalize( uMvp * vec4(vNormal, 0)).xyz;
 })";
 
 const char* Shader::fs_src = R"(
@@ -97,13 +100,14 @@ out vec4 color;
 in vec3 pos;
 in vec3 normal;
 
+uniform vec3 uCameraPos;
+
 void main() {
-  vec3 lightCol = vec3(2, 2, 1) * 1.0f;
+  vec3 lightCol = vec3(2, 2, 1) * 1000.0f;
   vec3 materialCol = vec3(0.7f, 0.5f, 1);
-  vec3 cameraPos = vec3(0, 0, -1);
 
 
-  vec3 light = vec3(0, 0, -2);
+  vec3 light = vec3(0, 100, 4);
   vec3 lightVec = light - pos;
   float dist = length(lightVec);
   vec3 lightDir = lightVec / dist;
@@ -113,10 +117,10 @@ void main() {
 
   vec3 diffuse = clamp(dot(lightDir, normal), 0, 1) * lightCol * attenuation;
 
-  vec3 E = normalize(cameraPos - pos);
+  vec3 E = normalize(uCameraPos - pos);
   vec3 R = reflect(-lightDir, normal);
   float cosAlpha = clamp(dot(E, R), 0, 1); 
-  vec3 specular = materialCol * lightCol * pow(cosAlpha, 50);
+  vec3 specular = materialCol * lightCol * pow(cosAlpha, 50) * attenuation;
 
   vec3 fColor = ambient + diffuse + specular;
   color = vec4(fColor, 1);
