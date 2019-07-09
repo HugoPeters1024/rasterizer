@@ -27,7 +27,7 @@ Mesh::Mesh()
 {
   position[0] = 0;
   position[1] = 0;
-  position[2] = 0.2;
+  position[2] = 0.2f;
   rotation[0] = 0;
   rotation[1] = 0;
   rotation[2] = 0;
@@ -95,7 +95,6 @@ void Mesh::draw(const mat4x4 camera) const
 
 void Mesh::update()
 {
-  rotation[1] += 0.005f;
   rotation[0] += 0.005f;
 }
 

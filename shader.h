@@ -98,9 +98,18 @@ in vec3 pos;
 in vec3 normal;
 
 void main() {
+  vec3 lightCol = vec3(2, 1, 5) * 15;
+  vec3 materialCol = vec3(1, 1, 1);
+
+
   vec3 light = vec3(0, 5, 0);
-  vec3 lightCol = vec3(1, 1, 1);
-  vec3 lightDir = normalize(light - pos);
-  float theta = max(dot(lightDir, normal), 0) + 0.2f;
-  color = vec4(lightCol * theta, 1);
+  vec3 lightVec = light - pos;
+  float dist = length(lightVec);
+  vec3 lightDir = lightVec / dist;
+
+  vec3 ambient = 0.2f * materialCol;
+
+  vec3 diffuse = max(dot(lightDir, normal), 0) * lightCol / (dist * dist);
+  vec3 fColor = ambient + diffuse;
+  color = vec4(fColor, 1);
 })";
