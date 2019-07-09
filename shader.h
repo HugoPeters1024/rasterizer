@@ -98,18 +98,26 @@ in vec3 pos;
 in vec3 normal;
 
 void main() {
-  vec3 lightCol = vec3(2, 1, 5) * 15;
-  vec3 materialCol = vec3(1, 1, 1);
+  vec3 lightCol = vec3(2, 2, 1) * 1.0f;
+  vec3 materialCol = vec3(0.7f, 0.5f, 1);
+  vec3 cameraPos = vec3(0, 0, -1);
 
 
-  vec3 light = vec3(0, 5, 0);
+  vec3 light = vec3(0, 0, -2);
   vec3 lightVec = light - pos;
   float dist = length(lightVec);
   vec3 lightDir = lightVec / dist;
+  float attenuation = 1.0f / (dist * dist);
 
-  vec3 ambient = 0.2f * materialCol;
+  vec3 ambient = 0.1f * materialCol;
 
-  vec3 diffuse = max(dot(lightDir, normal), 0) * lightCol / (dist * dist);
-  vec3 fColor = ambient + diffuse;
+  vec3 diffuse = clamp(dot(lightDir, normal), 0, 1) * lightCol * attenuation;
+
+  vec3 E = normalize(cameraPos - pos);
+  vec3 R = reflect(-lightDir, normal);
+  float cosAlpha = clamp(dot(E, R), 0, 1); 
+  vec3 specular = materialCol * lightCol * pow(cosAlpha, 50);
+
+  vec3 fColor = ambient + diffuse + specular;
   color = vec4(fColor, 1);
 })";

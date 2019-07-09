@@ -27,7 +27,7 @@ Mesh::Mesh()
 {
   position[0] = 0;
   position[1] = 0;
-  position[2] = 0.2f;
+  position[2] = 1.2f;
   rotation[0] = 0;
   rotation[1] = 0;
   rotation[2] = 0;
@@ -95,7 +95,8 @@ void Mesh::draw(const mat4x4 camera) const
 
 void Mesh::update()
 {
-  rotation[0] += 0.005f;
+  rotation[1] += 0.05f;
+  rotation[0] += 0.02f;
 }
 
 void Mesh::getMvp(mat4x4 f) const
@@ -113,11 +114,11 @@ void Mesh::getMvp(mat4x4 f) const
   mat4x4_rotate_X(rx, i, rotation[0]);
   mat4x4_rotate_Y(ry, i, rotation[1]);
   mat4x4_rotate_Z(rz, i, rotation[2]);
+  mat4x4_mul(f, f, t);
   mat4x4_mul(f, s, f);
   mat4x4_mul(f, f, rx);
   mat4x4_mul(f, f, ry);
   mat4x4_mul(f, f, rz);
-  mat4x4_mul(f, f, t);
 
 //  mat4x4_rotate(m, m, 1, 0, 0, rotation[0]);
  // mat4x4_rotate(m, m, 0, 1, 0, rotation[1]);

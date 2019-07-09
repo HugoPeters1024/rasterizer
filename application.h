@@ -25,10 +25,13 @@ void Application::init()
 void Application::loop(int w, int h)
 {
   float ratio = w / (float)h;
-  mat4x4 camera;
-  mat4x4_ortho(camera, -ratio, ratio, -1.f, 1.f, 1.f, -1.f);
+  mat4x4 ortho, perspective, camera;
+  mat4x4_ortho(ortho, -ratio, ratio, -1.f, 1.f, 1.f, -1.f);
+  mat4x4_perspective(perspective, 90, 1, 1.0f, 100.0f);
+  mat4x4_mul(camera, ortho, perspective);
+  dump(camera);
   mesh->update();
-  mesh->draw(camera);
+  mesh->draw(ortho);
 }
 
 bool Application::shouldClose() { return false; }
