@@ -5,14 +5,15 @@
 
 #include "mesh.h"
 #include "linmath.h"
+#include "camera.h"
 
 
 class Application
 {
   private:
     Mesh* mesh;
-    Mesh* mesh2;
-    vec3 camPos;
+    Camera* camera;
+    float fov;
   public:
     void init();
     void loop(int w, int h);
@@ -22,31 +23,18 @@ class Application
 void Application::init()
 {
   mesh = new Mesh();
-  mesh2 = new Mesh();
-  camPos[0] = 0;
-  camPos[1] = 0;
-  camPos[2] = 0;
+  camera = new Camera(1.25f);
+  camera->pos[1] = 10.5f;
 }
 
 void Application::loop(int w, int h)
 {
   float ratio = w / (float)h;
-  mat4x4 perspective, camera, view;
-  mat4x4_perspective(perspective, 1.2f, ratio, 0.1f, 1000.0f);
-  mat4x4_identity(camera);
-  mat4x4_translate(camera, -camPos[0], -camPos[1], camPos[2]);
-  mat4x4_mul(view, perspective, camera);
+  mat4x4 newCam;
+  camera->getMatrix(ratio, newCam);
 
   mesh->update();
-  mesh2->update();
-  mesh2->update();
-
-  mesh->draw(view);
-  mesh2->draw(view);
-
-  mesh2->position[0] += 0.01f;
-
-  camPos[1] += 0.01f;
+  mesh->draw(newCam);
 }
 
 bool Application::shouldClose() { return false; }

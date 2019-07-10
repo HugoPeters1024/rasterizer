@@ -103,25 +103,17 @@ void Mesh::getMvp(mat4x4 f) const
 {
   mat4x4 i, rx, ry, rz, t, s;
   mat4x4_identity(i);
-  mat4x4_identity(rx);
-  mat4x4_identity(ry);
-  mat4x4_identity(rz);
-  mat4x4_identity(t);
-  mat4x4_identity(s);
-  mat4x4_identity(f);
+
   mat4x4_translate(t, position[0], position[1], -position[2]);
   mat4x4_scale_aniso(s, i, scale, scale, scale);
   mat4x4_rotate_X(rx, i, rotation[0]);
   mat4x4_rotate_Y(ry, i, rotation[1]);
   mat4x4_rotate_Z(rz, i, rotation[2]);
-  mat4x4_mul(f, f, t);
-  mat4x4_mul(f, s, f);
-  mat4x4_mul(f, f, rx);
-  mat4x4_mul(f, f, ry);
-  mat4x4_mul(f, f, rz);
 
-//  mat4x4_rotate(m, m, 1, 0, 0, rotation[0]);
- // mat4x4_rotate(m, m, 0, 1, 0, rotation[1]);
-  //mat4x4_rotate(m, m, 0, 0, 1, rotation[2]);
+  mat4x4_mul(f, s, i);  // scale
+  mat4x4_mul(f, rx, f); // rotate
+  mat4x4_mul(f, ry, f);
+  mat4x4_mul(f, rz, f);
+  mat4x4_mul(f, t, f);  // translate
 }
 
