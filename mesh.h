@@ -1,9 +1,9 @@
-#include <GLFW/glfw3.h>
 #include "linmath.h"
 
 #include "shader.h"
 #include "linmath.h"
 #include "obj_loader.h"
+#include "keyboard.h"
 
 class Mesh
 {
@@ -20,7 +20,7 @@ public:
   float scale;
   Mesh();
   void draw(const mat4x4 camera) const;
-  void update();
+  void update(Keyboard* keyboard);
 };
 
 Mesh::Mesh()
@@ -94,7 +94,7 @@ void Mesh::draw(const mat4x4 camera) const
    glBindVertexArray(0);
 }
 
-void Mesh::update()
+void Mesh::update(Keyboard* keyboard)
 {
   rotation[1] += 0.05f;
 }

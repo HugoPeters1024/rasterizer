@@ -103,7 +103,7 @@ in vec3 normal;
 uniform vec3 uCameraPos;
 
 void main() {
-  vec3 lightCol = vec3(2, 2, 1) * 1000.0f;
+  vec3 lightCol = vec3(2, 2, 1) * 2000.0f;
   vec3 materialCol = vec3(0.7f, 0.5f, 1);
 
 

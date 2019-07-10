@@ -13,6 +13,7 @@
 
 #include "logger.h"
 #include "application.h"
+#include "keyboard.h"
 
 #ifdef GL_DEBUG
 #include "gl_debug.h"
@@ -20,17 +21,21 @@
 
 GLFWwindow* window;
 Application* app;
+Keyboard* keyboard;
 
 void glfw_error_callback(int error, const char* description)
 {
   fprintf(stderr, "Error: %s\n", description);
 }
 
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+  //printf("key: %i, scancode: %i, action: %i\n", key, scancode, action);
+}
 
 int main(int argc, char** argv) {
   // Set log level
   log_set_level(L_DEBUG);
-  
 
   // Setup GLFW handlers
   glfwSetErrorCallback(glfw_error_callback);
@@ -50,6 +55,7 @@ int main(int argc, char** argv) {
   }
 
   glfwMakeContextCurrent(window);
+  glfwSetKeyCallback(window, key_callback);
 
 #ifdef GL_DEBUG
   printf("OpenGL debugging enabled.\n");
@@ -75,20 +81,23 @@ int main(int argc, char** argv) {
 
   logInfo("startup completed");
 
+  keyboard = new Keyboard(window);
   app = new Application();
   app->init();
 
   while(!(glfwWindowShouldClose(window) | app->shouldClose()))
   {
+     keyboard->swapBuffers();
      int w, h;
      glfwGetFramebufferSize(window, &w, &h);
 
      glViewport(0, 0, w, h);
      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-     glfwPollEvents();
-     app->loop(w, h);
+     app->loop(w, h, keyboard);
+
      glfwSwapBuffers(window);
+     glfwPollEvents();
   }
 
   delete app;

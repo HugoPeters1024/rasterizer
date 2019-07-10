@@ -16,7 +16,7 @@ class Application
     float fov;
   public:
     void init();
-    void loop(int w, int h);
+    void loop(int w, int h, Keyboard* keyboard);
     bool shouldClose();
 };
 
@@ -27,14 +27,20 @@ void Application::init()
   camera->pos[1] = 10.5f;
 }
 
-void Application::loop(int w, int h)
+void Application::loop(int w, int h, Keyboard* keyboard)
 {
   float ratio = w / (float)h;
+  camera->update(keyboard);
+
+
   mat4x4 newCam;
   camera->getMatrix(ratio, newCam);
 
-  mesh->update();
+  mesh->update(keyboard);
   mesh->draw(newCam);
+  mesh->position[0] += 3;
+  mesh->draw(newCam);
+  mesh->position[0] -= 3;
 }
 
 bool Application::shouldClose() { return false; }
