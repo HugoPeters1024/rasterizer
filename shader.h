@@ -113,14 +113,16 @@ void main() {
   vec3 lightDir = lightVec / dist;
   float attenuation = 1.0f / (dist * dist);
 
-  vec3 ambient = 0.1f * materialCol;
+  vec3 ambient = 0.15f * materialCol;
+  float vis = clamp(dot(lightDir, normal), 0, 1);
 
-  vec3 diffuse = clamp(dot(lightDir, normal), 0, 1) * lightCol * attenuation;
+
+  vec3 diffuse = vis * lightCol * attenuation;
 
   vec3 E = normalize(uCameraPos - pos);
   vec3 R = reflect(-lightDir, normal);
   float cosAlpha = clamp(dot(E, R), 0, 1); 
-  vec3 specular = materialCol * lightCol * pow(cosAlpha, 50) * attenuation;
+  vec3 specular = materialCol * lightCol * pow(cosAlpha, 50) * attenuation * vis;
 
   vec3 fColor = ambient + diffuse + specular;
   color = vec4(fColor, 1);

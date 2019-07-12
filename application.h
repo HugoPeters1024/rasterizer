@@ -38,9 +38,9 @@ void Application::loop(int w, int h, Keyboard* keyboard)
 
   mesh->update(keyboard);
   mesh->draw(newCam);
-  mesh->position[0] += 3;
+  mesh->position[0] += 6;
   mesh->draw(newCam);
-  mesh->position[0] -= 3;
+  mesh->position[0] -= 6;
 }
 
 bool Application::shouldClose() { return false; }
