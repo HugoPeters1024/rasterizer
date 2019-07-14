@@ -18,12 +18,12 @@ private:
 public:
   vec3 position, rotation, anchor;
   float scale;
-  Mesh();
+  Mesh(const char* model);
   void draw(const mat4x4 camera) const;
   void update(Keyboard* keyboard);
 };
 
-Mesh::Mesh()
+Mesh::Mesh(const char* model)
 {
   position[0] = 0;
   position[1] = 0;
@@ -35,7 +35,7 @@ Mesh::Mesh()
   scale = 1;
   logDebug("Initializing Mesh");
 
-  auto obj = cObj("male.obj");
+  auto obj = cObj(model);
   obj.renderBuffers(vertices, normals);
 
 
@@ -96,7 +96,6 @@ void Mesh::draw(const mat4x4 camera) const
 
 void Mesh::update(Keyboard* keyboard)
 {
-  rotation[1] += 0.05f;
 }
 
 void Mesh::getMvp(mat4x4 f) const

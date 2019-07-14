@@ -11,7 +11,8 @@
 class Application
 {
   private:
-    Mesh* mesh;
+    Mesh* person;
+    Mesh* stack;
     Camera* camera;
     float fov;
   public:
@@ -22,7 +23,10 @@ class Application
 
 void Application::init()
 {
-  mesh = new Mesh();
+  person = new Mesh("male.obj");
+  stack = new Mesh("stack.obj");
+  stack->rotation[0] = 3.141592f / 2.0f;
+  stack->position[1] = 10;
   camera = new Camera(1.25f);
   camera->pos[1] = 10.5f;
 }
@@ -32,15 +36,17 @@ void Application::loop(int w, int h, Keyboard* keyboard)
   float ratio = w / (float)h;
   camera->update(keyboard);
 
+  mat4x4 m_camera;
+  camera->getMatrix(ratio, m_camera);
 
-  mat4x4 newCam;
-  camera->getMatrix(ratio, newCam);
+  person->update(keyboard);
 
-  mesh->update(keyboard);
-  mesh->draw(newCam);
-  mesh->position[0] += 6;
-  mesh->draw(newCam);
-  mesh->position[0] -= 6;
+  // Todo: pass camera pos to shader
+  person->draw(m_camera);
+  stack->draw(m_camera);
+
+  stack->position[2] -= 0.005f;
+  stack->rotation[2] += 0.01f;
 }
 
 bool Application::shouldClose() { return false; }

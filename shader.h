@@ -1,7 +1,15 @@
-inline static GLuint CompileShader(GLint type, const GLchar* const* source)
+#include <array>
+#include <string>
+
+#define NUM_LIGHTS 10
+
+inline static GLuint CompileShader(GLint type, std::string &source)
 {
+  // Preprocess macro's
+
   GLuint shader = glCreateShader(type);
-  glShaderSource(shader, 1, source, NULL);
+  const GLchar* c_str = source.c_str();
+  glShaderSource(shader, 1, &c_str, NULL);
   glCompileShader(shader);
 
   // Check the compilation of the shader 
@@ -28,11 +36,13 @@ inline static GLuint CompileShader(GLint type, const GLchar* const* source)
 class Shader
 {
 private:
-  static const char* vs_src;
-  static const char* fs_src;
+  static std::string vs_src;
+  static std::string fs_src;
 
 public:
   GLint vPos, vNormal, uMvp, uCamera, uCameraPos;
+  std::array<GLint, 10> uLightsCol;
+  std::array<GLint, 10> uLightsPos;
   GLuint program;
   Shader();
 
@@ -42,8 +52,8 @@ public:
 Shader::Shader()
 {
   logDebug("Initializing shader");
-  GLuint vs = CompileShader(GL_VERTEX_SHADER, &vs_src);
-  GLuint fs = CompileShader(GL_FRAGMENT_SHADER, &fs_src);
+  GLuint vs = CompileShader(GL_VERTEX_SHADER, vs_src);
+  GLuint fs = CompileShader(GL_FRAGMENT_SHADER, fs_src);
 
   program = glCreateProgram();
   glAttachShader(program, vs);
@@ -56,13 +66,18 @@ Shader::Shader()
   uCamera = glGetUniformLocation(program, "uCamera");
   uCameraPos = glGetUniformLocation(program, "uCameraPos");
 
+  for(int i=0; i<uLightsPos.size(); i++) {
+    char name[12 + i / 10];
+    snprintf(name, sizeof(name), "lights_p[%i]", i);
+    uLightsPos[i] = glGetUniformLocation(program, name);
+
+    snprintf(name, sizeof(name), "lights_c[%i]", i);
+    uLightsCol[i] = glGetUniformLocation(program, name);
+  }
+
+
   glEnableVertexAttribArray(vPos);
   glEnableVertexAttribArray(vNormal);
-
-  logDebug("a%i: \t vPos", vPos);
-  logDebug("u%i: \t uMvp", uMvp);
-  logDebug("u%i: \t uCamera", uCamera);
-  logDebug("u%i: \t uCameraPos", uCameraPos);
 
   logDebug("Done initializing shader");
 }
@@ -70,11 +85,13 @@ Shader::Shader()
 void Shader::bind()
 {
    glUseProgram(program);
+   glUniform3f(uLightsPos[0], 0, 100, 4);
+   glUniform3f(uLightsCol[0], 4000, 4000, 2000);
 }
 
 
 
-const char* Shader::vs_src = R"(
+std::string Shader::vs_src = R"(
 #version 330 core
 layout(location = 0) in vec3 vPos;
 layout(location = 1) in vec3 vNormal;
@@ -93,7 +110,7 @@ void main() {
    normal = normalize( uMvp * vec4(vNormal, 0)).xyz;
 })";
 
-const char* Shader::fs_src = R"(
+std::string Shader::fs_src = R"(
 #version 330 core
 out vec4 color;
 
@@ -101,29 +118,41 @@ in vec3 pos;
 in vec3 normal;
 
 uniform vec3 uCameraPos;
+uniform mat4 uCamera;
+
+//#define NUM_LIGHTS [NUM_LIGHTS];
+
+// Array of structs is not supported
+uniform vec3 lights_p[10];
+uniform vec3 lights_c[10];
 
 void main() {
-  vec3 lightCol = vec3(2, 2, 1) * 2000.0f;
-  vec3 materialCol = vec3(0.7f, 0.5f, 1);
+  // ambient component
+  vec3 materialCol = vec3(1.0f);
+  vec3 fColor = 0.15f * materialCol;
+  vec3 cameraPos = (uCamera * vec4(0, 0, -1, 1)).xyz;
 
 
-  vec3 light = vec3(0, 100, 4);
-  vec3 lightVec = light - pos;
-  float dist = length(lightVec);
-  vec3 lightDir = lightVec / dist;
-  float attenuation = 1.0f / (dist * dist);
+  for(int i=0; i<10; i++) {
+    vec3 light_p = lights_p[i];
+    vec3 light_c = lights_c[i];
 
-  vec3 ambient = 0.15f * materialCol;
-  float vis = clamp(dot(lightDir, normal), 0, 1);
+    vec3 lightVec = light_p - pos;
 
+    float dist = length(lightVec);
+    vec3 lightDir = lightVec / dist;
+    float attenuation = 1.0f / (dist * dist);
 
-  vec3 diffuse = vis * lightCol * attenuation;
+    float vis = clamp(dot(lightDir, normal), 0, 1);
+    vec3 diffuse = vis * light_c * attenuation;
 
-  vec3 E = normalize(uCameraPos - pos);
-  vec3 R = reflect(-lightDir, normal);
-  float cosAlpha = clamp(dot(E, R), 0, 1); 
-  vec3 specular = materialCol * lightCol * pow(cosAlpha, 50) * attenuation * vis;
+    vec3 E = normalize(cameraPos - pos);
+    vec3 R = reflect(-lightDir, normal);
+    float cosAlpha = clamp(dot(E, R), 0, 1); 
+    vec3 specular = materialCol * light_c * pow(cosAlpha, 50) * attenuation * vis;
 
-  vec3 fColor = ambient + diffuse + specular;
-  color = vec4(fColor, 1);
+    fColor += diffuse + specular;
+  }
+
+  color = vec4(fColor, 1.0f);
 })";

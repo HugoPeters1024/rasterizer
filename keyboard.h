@@ -9,6 +9,8 @@ enum action {
   MOVE_LEFT,
   MOVE_FORWARD,
   MOVE_BACKWARD,
+  MOVE_UP,
+  MOVE_DOWN,
 
   LOOK_UP,
   LOOK_DOWN,
@@ -88,6 +90,8 @@ void Keyboard::generateActionMap()
   action_map[MOVE_RIGHT]    = GLFW_KEY_D;
   action_map[MOVE_FORWARD]  = GLFW_KEY_W;
   action_map[MOVE_BACKWARD] = GLFW_KEY_S;
+  action_map[MOVE_UP]       = GLFW_KEY_Q;
+  action_map[MOVE_DOWN]     = GLFW_KEY_E;
 
   action_map[LOOK_UP]       = GLFW_KEY_UP;
   action_map[LOOK_DOWN]     = GLFW_KEY_DOWN;
