@@ -76,6 +76,16 @@
 		for(int i=0; i<n; ++i) \
 			r[i] = a[i] + b[i]; \
 	} \
+	static inline void vec##n##_set(vec##n r, float x, float y, float z) \
+	{ \
+    r[0] = x; \
+    r[1] = y; \
+    r[2] = z; \
+	} \
+	static inline void vec##n##_zero(vec##n r) \
+	{ \
+    r[0] = 0; r[1] = 0; r[2] = 0; \
+  } \
 	static inline void vec##n##_sub(vec##n r, vec##n a, vec##n b) \
 	{ \
 		for(int i=0; i<n; ++i) \

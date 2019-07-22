@@ -92,7 +92,7 @@ void Shader::bind(const Camera* camera, mat4x4 &mvp)
 
    glUseProgram(program);
 
-   glUniform3f(uLightsPos[0], 0, 15, 4);
+   glUniform3f(uLightsPos[0], 0, 15, 20);
    glUniform3f(uLightsCol[0], 200, 200, 300);
 
    glUniform3f(uCamPos, camera->pos[0], camera->pos[1], camera->pos[2]);
@@ -131,11 +131,11 @@ in vec3 normal;
 uniform mat4 uCamera;
 uniform vec3 uCamPos;
 
-//#define NUM_LIGHTS [NUM_LIGHTS];
+#define NUM_LIGHTS 10
 
 // Array of structs is not supported
-uniform vec3 lights_p[10];
-uniform vec3 lights_c[10];
+uniform vec3 lights_p[NUM_LIGHTS]; 
+uniform vec3 lights_c[NUM_LIGHTS];
 
 void main() {
   // ambient component
@@ -144,7 +144,7 @@ void main() {
   vec3 cameraPos = (uCamera * vec4(0, 0, -1, 1)).xyz;
 
 
-  for(int i=0; i<10; i++) {
+  for(int i=0; i<NUM_LIGHTS; i++) {
     vec3 light_p = lights_p[i];
     vec3 light_c = lights_c[i];
 
@@ -157,10 +157,10 @@ void main() {
     float vis = clamp(dot(lightDir, normal), 0, 1);
     vec3 diffuse = vis * light_c * attenuation;
 
-    vec3 E = normalize(uCamPos - pos);
+    vec3 E = normalize(pos - uCamPos);
     vec3 R = reflect(-lightDir, normal);
     float cosAlpha = clamp(dot(E, R), 0, 1); 
-    vec3 specular = materialCol * light_c * pow(cosAlpha, 10) * attenuation;
+    vec3 specular = materialCol * light_c * pow(cosAlpha, 20) * attenuation;
 
     fColor += diffuse + specular;
   }

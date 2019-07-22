@@ -29,6 +29,7 @@ void Application::init()
   stack->position[1] = 10;
   camera = new Camera(1.25f);
   camera->pos[1] = 10.5f;
+  camera->pos[2] = -10.5f;
 }
 
 void Application::loop(int w, int h, Keyboard* keyboard)
@@ -44,7 +45,8 @@ void Application::loop(int w, int h, Keyboard* keyboard)
 
   stack->position[2] -= 0.005f;
   stack->rotation[2] += 0.01f;
-  person->rotation[1] += 0.02f;
+  person->anchor[1] = -10;
+  person->rotation[0] += 0.02f;
 }
 
 bool Application::shouldClose() { return false; }
