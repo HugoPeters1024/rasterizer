@@ -92,7 +92,7 @@ void Shader::bind(const Camera* camera, mat4x4 &mvp)
 
    glUseProgram(program);
 
-   glUniform3f(uLightsPos[0], 0, 15, 20);
+   glUniform3f(uLightsPos[0], 0, 15, -20);
    glUniform3f(uLightsCol[0], 200, 200, 300);
 
    glUniform3f(uCamPos, camera->pos[0], camera->pos[1], camera->pos[2]);
@@ -157,7 +157,7 @@ void main() {
     float vis = clamp(dot(lightDir, normal), 0, 1);
     vec3 diffuse = vis * light_c * attenuation;
 
-    vec3 E = normalize(pos - uCamPos);
+    vec3 E = normalize(uCamPos - pos);
     vec3 R = reflect(-lightDir, normal);
     float cosAlpha = clamp(dot(E, R), 0, 1); 
     vec3 specular = materialCol * light_c * pow(cosAlpha, 20) * attenuation;

@@ -3,6 +3,7 @@
 
 #include "obj_loader.h"
 
+#include "utils.h"
 #include "mesh.h"
 #include "linmath.h"
 #include "camera.h"
@@ -27,6 +28,7 @@ void Application::init()
   stack = new Mesh("stack.obj");
   stack->rotation[0] = 3.141592f / 2.0f;
   stack->position[1] = 10;
+  person->rotation[1] = PI;
   camera = new Camera(1.25f);
   camera->pos[1] = 10.5f;
   camera->pos[2] = -10.5f;
@@ -50,4 +52,3 @@ void Application::loop(int w, int h, Keyboard* keyboard)
 }
 
 bool Application::shouldClose() { return false; }
-

@@ -22,20 +22,15 @@ public:
 
 Camera::Camera(float fov)
 {
-  pos[0] = 0;
-  pos[1] = 0;
-  pos[2] = 0;
-
-  viewDir[0] = 0;
-  viewDir[1] = 0;
-  viewDir[2] = 1;
-  vec3_norm(viewDir, viewDir);
+  vec3_zero(pos);
+  vec3_set(viewDir, 0, 0, 1);
 
   this->fov = fov;
 }
 
 void Camera::update(float ratio, Keyboard* keyboard)
 {
+  printf("vz: %f  -  pz: %f\n", viewDir[2], pos[2]);
   float speed = 0.3f;
   float rot_speed = 0.02f;
   vec3 move_dir = { viewDir[0], 0, viewDir[2] };
@@ -43,7 +38,7 @@ void Camera::update(float ratio, Keyboard* keyboard)
   vec3 unitY = { 0, 1, 0};
 
   // Sideways move vector
-  vec3 move_tan = { move_dir[2], move_dir[1], -move_dir[0] }; //tangent to move_dir 
+  vec3 move_tan = { -move_dir[2], move_dir[1], move_dir[0] }; //tangent to move_dir 
   vec3_scale(move_tan, move_tan, speed);
 
   // Forwards move vector
@@ -56,13 +51,13 @@ void Camera::update(float ratio, Keyboard* keyboard)
 
   // Tangent to view vector in xz plane
   vec3 view_tan;
-  vec3_mul_cross(view_tan, unitY, move_dir);
+  vec3_mul_cross(view_tan, move_dir, unitY);
   vec3_norm(view_tan, view_tan);
   vec3_scale(view_tan, view_tan, rot_speed);
 
   // Tangent to view vector and view tangent
   vec3 view_bitan;
-  vec3_mul_cross(view_bitan, view_tan, viewDir);
+  vec3_mul_cross(view_bitan, viewDir, view_tan);
   vec3_norm(view_bitan, view_bitan);
   vec3_scale(view_bitan, view_bitan, rot_speed);
 
@@ -97,7 +92,7 @@ void Camera::calcMatrix(float screenRatio)
   mat4x4_identity(t);
 
   mat4x4_perspective(p, fov, screenRatio, 0.1f, 1000.0f);
-  mat4x4_translate(t, -pos[0], -pos[1], pos[2]);
+  mat4x4_translate(t, -pos[0], -pos[1], -pos[2]);
 
   float theta, phi;
   vec3 xz = { viewDir[0], 0, viewDir[2] };
@@ -107,7 +102,7 @@ void Camera::calcMatrix(float screenRatio)
   float vy = viewDir[1];
   float vz = viewDir[2];
 
-  theta = -atan2(xz[0], xz[2]);
+  theta = -atan2(xz[0], -xz[2]);
   if (theta < 0)
     theta = theta + 2 * 3.1415926f;
 
