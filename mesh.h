@@ -11,7 +11,6 @@ class Mesh
 private:
   GLuint vao;
   GLuint vbo, nbo;
-  Shader* shader;
   unsigned int triangle_count;
 
   void getMvp(mat4x4 m) const;
@@ -20,7 +19,7 @@ public:
   float scale;
   Mesh(const char* model);
 
-  void draw(const Camera* camera) const;
+  void draw(const Shader* shader, const Camera* camera) const;
   void update(Keyboard* keyboard);
 };
 
@@ -56,39 +55,33 @@ Mesh::Mesh(const char* model)
   glBufferData(GL_ARRAY_BUFFER, normals.size()*sizeof(float), normals.data(), GL_STATIC_DRAW);
 
 
-  // Create shader
-  shader = new Shader();
+  glBindVertexArray(0);
 
-  // Mount buffers to shader fields
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glVertexAttribPointer(
+  logDebug("Done initializing mesh");
+}
+
+void Mesh::draw(const Shader* shader, const Camera* camera) const
+{
+   mat4x4 mvp;
+   getMvp(mvp);
+   glBindVertexArray(vao);
+   shader->bind(camera, mvp);
+   glBindBuffer(GL_ARRAY_BUFFER, vbo);
+   glVertexAttribPointer(
       shader->vPos,
       3,
       GL_FLOAT,
       GL_FALSE,
       0,
       (void*)(sizeof(float) * 0));
-
-  glBindBuffer(GL_ARRAY_BUFFER, nbo);
-  glVertexAttribPointer(
+   glBindBuffer(GL_ARRAY_BUFFER, nbo);
+   glVertexAttribPointer(
       shader->vNormal,
       3,
       GL_FLOAT,
       GL_FALSE,
       0,
       (void*)(sizeof(float) * 0));
-
-  glBindVertexArray(0);
-
-  logDebug("Done initializing mesh");
-}
-
-void Mesh::draw(const Camera* camera) const
-{
-   mat4x4 mvp;
-   getMvp(mvp);
-   shader->bind(camera, mvp);
-   glBindVertexArray(vao);
    glDrawArrays(GL_TRIANGLES, 0, triangle_count);
    glBindVertexArray(0);
 }

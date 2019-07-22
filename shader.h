@@ -49,7 +49,7 @@ public:
   GLuint program;
   Shader();
 
-  void bind(const Camera* camera, mat4x4 &mvp);
+  void bind(const Camera* camera, mat4x4 &mvp) const;
 };
 
 Shader::Shader()
@@ -78,17 +78,17 @@ Shader::Shader()
     uLightsCol[i] = glGetUniformLocation(program, name);
   }
 
-
-  glEnableVertexAttribArray(vPos);
-  glEnableVertexAttribArray(vNormal);
-
   logDebug("Done initializing shader");
 }
 
-void Shader::bind(const Camera* camera, mat4x4 &mvp)
+void Shader::bind(const Camera* camera, mat4x4 &mvp) const
 {
    mat4x4 m_camera;
    camera->getMatrix(m_camera);
+
+   // Assumes that the appropriate vao is bound
+   glEnableVertexAttribArray(vPos);
+   glEnableVertexAttribArray(vNormal);
 
    glUseProgram(program);
 
@@ -154,13 +154,13 @@ void main() {
     vec3 lightDir = lightVec / dist;
     float attenuation = 1.0f / (dist * dist);
 
-    float vis = clamp(dot(lightDir, normal), 0, 1);
+    float vis = max(dot(lightDir, normal), 0);
     vec3 diffuse = vis * light_c * attenuation;
 
     vec3 E = normalize(uCamPos - pos);
     vec3 R = reflect(-lightDir, normal);
     float cosAlpha = clamp(dot(E, R), 0, 1); 
-    vec3 specular = materialCol * light_c * pow(cosAlpha, 20) * attenuation;
+    vec3 specular = materialCol * light_c * pow(cosAlpha, 100) * attenuation;
 
     fColor += diffuse + specular;
   }

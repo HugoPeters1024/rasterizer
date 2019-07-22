@@ -30,7 +30,6 @@ Camera::Camera(float fov)
 
 void Camera::update(float ratio, Keyboard* keyboard)
 {
-  printf("vz: %f  -  pz: %f\n", viewDir[2], pos[2]);
   float speed = 0.3f;
   float rot_speed = 0.02f;
   vec3 move_dir = { viewDir[0], 0, viewDir[2] };
