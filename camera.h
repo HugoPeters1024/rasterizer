@@ -4,15 +4,21 @@
 #include <math.h>
 #include "linmath.h"
 
-struct Camera
+class Camera
 {
-   vec3 pos, viewDir;
+private:
    float fov;
+   mat4x4 matrix;
 
+   void calcMatrix(float ratio);
+
+public:
+   vec3 pos, viewDir;
    Camera(float fov);
-   void update(Keyboard* keyboard);
-   void getMatrix(float screenRatio, mat4x4 &f) const;
+   void update(float ratio, Keyboard* keyboard);
+   void getMatrix(mat4x4 &t) const { mat4x4_dup(t, matrix); }
 };
+
 
 Camera::Camera(float fov)
 {
@@ -28,7 +34,7 @@ Camera::Camera(float fov)
   this->fov = fov;
 }
 
-void Camera::update(Keyboard* keyboard)
+void Camera::update(float ratio, Keyboard* keyboard)
 {
   float speed = 0.3f;
   float rot_speed = 0.02f;
@@ -80,11 +86,13 @@ void Camera::update(Keyboard* keyboard)
   if (keyboard->isDown(LOOK_LEFT))      vec3_sub(viewDir, viewDir, view_tan); 
   if (keyboard->isDown(LOOK_RIGHT))     vec3_add(viewDir, viewDir, view_tan); 
   vec3_norm(viewDir, viewDir);
+
+  calcMatrix(ratio);
 }
 
-void Camera::getMatrix(float screenRatio, mat4x4 &f) const
+void Camera::calcMatrix(float screenRatio)
 {
-  mat4x4 i, rx, ry, rz, t, p;
+  mat4x4 i, rx, ry, rz, t, p, f;
   mat4x4_identity(i);
   mat4x4_identity(t);
 
@@ -113,6 +121,7 @@ void Camera::getMatrix(float screenRatio, mat4x4 &f) const
   mat4x4_mul(f, ry, f);  // 2. rotate
   mat4x4_mul(f, rx, f);  
   mat4x4_mul(f, p, f);   // 3. apply perspective
+  mat4x4_dup(matrix, f);
 }
 
 

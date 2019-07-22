@@ -1,6 +1,9 @@
 #include <array>
 #include <string>
 
+#include "keyboard.h"
+#include "camera.h"
+
 #define NUM_LIGHTS 10
 
 inline static GLuint CompileShader(GLint type, std::string &source)
@@ -40,13 +43,13 @@ private:
   static std::string fs_src;
 
 public:
-  GLint vPos, vNormal, uMvp, uCamera, uCameraPos;
+  GLint vPos, vNormal, uMvp, uCamera, uCamPos;
   std::array<GLint, 10> uLightsCol;
   std::array<GLint, 10> uLightsPos;
   GLuint program;
   Shader();
 
-  void bind();
+  void bind(const Camera* camera, mat4x4 &mvp);
 };
 
 Shader::Shader()
@@ -64,7 +67,7 @@ Shader::Shader()
   vNormal = glGetAttribLocation(program, "vNormal");
   uMvp = glGetUniformLocation(program, "uMvp");
   uCamera = glGetUniformLocation(program, "uCamera");
-  uCameraPos = glGetUniformLocation(program, "uCameraPos");
+  uCamPos = glGetUniformLocation(program, "uCamPos");
 
   for(int i=0; i<uLightsPos.size(); i++) {
     char name[12 + i / 10];
@@ -82,11 +85,19 @@ Shader::Shader()
   logDebug("Done initializing shader");
 }
 
-void Shader::bind()
+void Shader::bind(const Camera* camera, mat4x4 &mvp)
 {
+   mat4x4 m_camera;
+   camera->getMatrix(m_camera);
+
    glUseProgram(program);
-   glUniform3f(uLightsPos[0], 0, 100, 4);
-   glUniform3f(uLightsCol[0], 4000, 4000, 2000);
+
+   glUniform3f(uLightsPos[0], 0, 15, 4);
+   glUniform3f(uLightsCol[0], 200, 200, 300);
+
+   glUniform3f(uCamPos, camera->pos[0], camera->pos[1], camera->pos[2]);
+   glUniformMatrix4fv(uCamera, 1, GL_FALSE, (const GLfloat*)m_camera);
+   glUniformMatrix4fv(uMvp, 1, GL_FALSE, (const GLfloat*)mvp);
 }
 
 
@@ -117,8 +128,8 @@ out vec4 color;
 in vec3 pos;
 in vec3 normal;
 
-uniform vec3 uCameraPos;
 uniform mat4 uCamera;
+uniform vec3 uCamPos;
 
 //#define NUM_LIGHTS [NUM_LIGHTS];
 
@@ -146,10 +157,10 @@ void main() {
     float vis = clamp(dot(lightDir, normal), 0, 1);
     vec3 diffuse = vis * light_c * attenuation;
 
-    vec3 E = normalize(cameraPos - pos);
+    vec3 E = normalize(uCamPos - pos);
     vec3 R = reflect(-lightDir, normal);
     float cosAlpha = clamp(dot(E, R), 0, 1); 
-    vec3 specular = materialCol * light_c * pow(cosAlpha, 50) * attenuation * vis;
+    vec3 specular = materialCol * light_c * pow(cosAlpha, 10) * attenuation;
 
     fColor += diffuse + specular;
   }

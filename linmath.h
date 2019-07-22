@@ -203,7 +203,7 @@ static inline void mat4x4_identity(mat4x4 M)
 		for(int j=0; j<4; ++j)
 			M[i][j] = (i==j) ? 1.f : 0.f;
 }
-static inline void mat4x4_dup(mat4x4 M, mat4x4 N)
+static inline void mat4x4_dup(mat4x4 M, const mat4x4 N)
 {
 	for(int i=0; i<4; ++i)
 		for(int j=0; j<4; ++j)

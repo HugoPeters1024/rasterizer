@@ -4,6 +4,7 @@
 #include "linmath.h"
 #include "obj_loader.h"
 #include "keyboard.h"
+#include "camera.h"
 
 class Mesh
 {
@@ -11,15 +12,15 @@ private:
   GLuint vao;
   GLuint vbo, nbo;
   Shader* shader;
-  std::vector<float> vertices;
-  std::vector<float> normals;
+  unsigned int triangle_count;
 
   void getMvp(mat4x4 m) const;
 public:
   vec3 position, rotation, anchor;
   float scale;
   Mesh(const char* model);
-  void draw(const mat4x4 camera) const;
+
+  void draw(const Camera* camera) const;
   void update(Keyboard* keyboard);
 };
 
@@ -36,7 +37,10 @@ Mesh::Mesh(const char* model)
   logDebug("Initializing Mesh");
 
   auto obj = cObj(model);
+  std::vector<float> vertices;
+  std::vector<float> normals;
   obj.renderBuffers(vertices, normals);
+  triangle_count = vertices.size() / 3;
 
 
   // Generate objects on GPU
@@ -82,15 +86,13 @@ Mesh::Mesh(const char* model)
   logDebug("Done initializing mesh");
 }
 
-void Mesh::draw(const mat4x4 camera) const
+void Mesh::draw(const Camera* camera) const
 {
    mat4x4 mvp;
    getMvp(mvp);
-   shader->bind();
+   shader->bind(camera, mvp);
    glBindVertexArray(vao);
-   glUniformMatrix4fv(shader->uMvp, 1, GL_FALSE, (const GLfloat*)mvp);
-   glUniformMatrix4fv(shader->uCamera, 1, GL_FALSE, (const GLfloat*)camera);
-   glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+   glDrawArrays(GL_TRIANGLES, 0, triangle_count);
    glBindVertexArray(0);
 }
 

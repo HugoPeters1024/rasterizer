@@ -34,19 +34,17 @@ void Application::init()
 void Application::loop(int w, int h, Keyboard* keyboard)
 {
   float ratio = w / (float)h;
-  camera->update(keyboard);
-
-  mat4x4 m_camera;
-  camera->getMatrix(ratio, m_camera);
+  camera->update(ratio, keyboard);
 
   person->update(keyboard);
 
   // Todo: pass camera pos to shader
-  person->draw(m_camera);
-  stack->draw(m_camera);
+  person->draw(camera);
+  stack->draw(camera);
 
   stack->position[2] -= 0.005f;
   stack->rotation[2] += 0.01f;
+  person->rotation[1] += 0.02f;
 }
 
 bool Application::shouldClose() { return false; }
