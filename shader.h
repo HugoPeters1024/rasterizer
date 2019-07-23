@@ -43,7 +43,7 @@ private:
   static std::string fs_src;
 
 public:
-  GLint vPos, vNormal, uMvp, uCamera, uCamPos;
+  GLint vPos, vNormal, vUV, uMvp, uCamera, uCamPos;
   std::array<GLint, 10> uLightsCol;
   std::array<GLint, 10> uLightsPos;
   GLuint program;
@@ -65,6 +65,7 @@ Shader::Shader()
 
   vPos = glGetAttribLocation(program, "vPos");
   vNormal = glGetAttribLocation(program, "vNormal");
+  vUV = glGetAttribLocation(program, "vUV");
   uMvp = glGetUniformLocation(program, "uMvp");
   uCamera = glGetUniformLocation(program, "uCamera");
   uCamPos = glGetUniformLocation(program, "uCamPos");
@@ -89,11 +90,18 @@ void Shader::bind(const Camera* camera, mat4x4 &mvp) const
    // Assumes that the appropriate vao is bound
    glEnableVertexAttribArray(vPos);
    glEnableVertexAttribArray(vNormal);
+   glEnableVertexAttribArray(vUV);
 
    glUseProgram(program);
 
-   glUniform3f(uLightsPos[0], 0, 15, -20);
+   glUniform3f(uLightsPos[0], 0, 5, -20);
    glUniform3f(uLightsCol[0], 200, 200, 300);
+
+   glUniform3f(uLightsPos[1], 0, 5, 20);
+   glUniform3f(uLightsCol[1], 400, 100, 100);
+
+   glUniform3f(uLightsPos[2], 0, 30, 0);
+   glUniform3f(uLightsCol[2], 10, 150, 10);
 
    glUniform3f(uCamPos, camera->pos[0], camera->pos[1], camera->pos[2]);
    glUniformMatrix4fv(uCamera, 1, GL_FALSE, (const GLfloat*)m_camera);
@@ -106,12 +114,14 @@ std::string Shader::vs_src = R"(
 #version 330 core
 layout(location = 0) in vec3 vPos;
 layout(location = 1) in vec3 vNormal;
+layout(location = 2) in vec2 vUV;
 
 uniform mat4 uMvp;
 uniform mat4 uCamera;
 
 out vec3 pos;
 out vec3 normal;
+out vec2 uv;
 
 
 void main() {
@@ -119,6 +129,7 @@ void main() {
    gl_Position = uCamera * worldPos; 
    pos = worldPos.xyz;
    normal = normalize( uMvp * vec4(vNormal, 0)).xyz;
+   uv = vUV / 5;
 })";
 
 std::string Shader::fs_src = R"(
@@ -127,9 +138,12 @@ out vec4 color;
 
 in vec3 pos;
 in vec3 normal;
+in vec2 uv;
 
 uniform mat4 uCamera;
 uniform vec3 uCamPos;
+
+uniform sampler2D tex;
 
 #define NUM_LIGHTS 10
 
@@ -139,7 +153,7 @@ uniform vec3 lights_c[NUM_LIGHTS];
 
 void main() {
   // ambient component
-  vec3 materialCol = vec3(1.0f);
+  vec3 materialCol = texture(tex, uv).xyz;
   vec3 fColor = 0.15f * materialCol;
   vec3 cameraPos = (uCamera * vec4(0, 0, -1, 1)).xyz;
 

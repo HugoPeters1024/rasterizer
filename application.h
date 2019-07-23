@@ -7,11 +7,13 @@
 #include "mesh.h"
 #include "linmath.h"
 #include "camera.h"
+#include "resources.h"
 
 
 class Application
 {
   private:
+    ResourceManager* RM;
     Shader* shader;
     Mesh* person;
     Mesh* stack;
@@ -26,10 +28,14 @@ class Application
 
 void Application::init()
 {
+  RM = new ResourceManager();
+  RM->loadTexture("floor", "texture.jpg");
+  RM->loadTexture("white", "white.png");
   shader = new Shader();
-  person = new Mesh("male.obj");
-  stack = new Mesh("stack.obj");
-  floor = new Mesh("floor.obj");
+  person = new Mesh(RM, "male.obj");
+  stack = new Mesh(RM, "stack.obj");
+  floor = new Mesh(RM, "floor.obj");
+  floor->tex = RM->getTexture("floor");
   floor->scale = 10;
   stack->rotation[0] = 3.141592f / 2.0f;
   stack->position[1] = 10;
@@ -54,7 +60,7 @@ void Application::loop(int w, int h, Keyboard* keyboard)
   stack->position[2] -= 0.005f;
   stack->rotation[2] += 0.01f;
   person->anchor[1] = -10;
-  person->rotation[0] += 0.02f;
+  person->rotation[1] += 0.02f;
 }
 
 bool Application::shouldClose() { return false; }

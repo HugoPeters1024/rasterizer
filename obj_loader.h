@@ -59,7 +59,7 @@ class cObj {
     cObj(std::string filename);
     ~cObj();
 
-  void renderBuffers(std::vector<float> &v_buf, std::vector<float> &n_buf) const;
+  void renderBuffers(std::vector<float> &v_buf, std::vector<float> &n_buf, std::vector<float> &uv_buf) const;
 };
 
 cObj::cObj(std::string filename) {
@@ -136,7 +136,7 @@ cObj::cObj(std::string filename) {
     std::cout << "              Faces: " << faces.size() << std::endl << std::endl;
 }
 
-void cObj::renderBuffers(std::vector<float> &v_buf, std::vector<float> &n_buf) const
+void cObj::renderBuffers(std::vector<float> &v_buf, std::vector<float> &n_buf, std::vector<float> &uv_buf) const
 {
   for(face f : faces)
   {
@@ -146,13 +146,19 @@ void cObj::renderBuffers(std::vector<float> &v_buf, std::vector<float> &n_buf) c
       {
         int vi = f.vertex[i];
         int ni = f.normal[i];
+        int ti = f.texture[i];
         v_buf.push_back(vertices[vi].v[0]);
         v_buf.push_back(vertices[vi].v[1]);
         v_buf.push_back(vertices[vi].v[2]);
 
         n_buf.push_back(normals[ni].v[0]);
-        n_buf.push_back(normals[ni].v[0]);
-        n_buf.push_back(normals[ni].v[0]);
+        n_buf.push_back(normals[ni].v[1]);
+        n_buf.push_back(normals[ni].v[2]);
+
+        if (texcoords.size() > 0) { 
+          uv_buf.push_back(texcoords[ti].v[0]);
+          uv_buf.push_back(texcoords[ti].v[1]);
+        }
       }
     }
     else if (f.vertex.size() == 4 && f.normal.size() == 4)
@@ -168,6 +174,15 @@ void cObj::renderBuffers(std::vector<float> &v_buf, std::vector<float> &n_buf) c
         vertex n2 = normals[f.normal[1]];
         vertex n3 = normals[f.normal[2]];
         vertex n4 = normals[f.normal[3]];
+
+        vertex t1, t2, t3, t4;
+        if (texcoords.size() > 0) {
+          // Extract the 4 texcoords
+          t1 = texcoords[f.texture[0]];
+          t2 = texcoords[f.texture[1]];
+          t3 = texcoords[f.texture[2]];
+          t4 = texcoords[f.texture[3]];
+        }
 
 
         // Triangle 1
@@ -221,6 +236,28 @@ void cObj::renderBuffers(std::vector<float> &v_buf, std::vector<float> &n_buf) c
         n_buf.push_back(n4.v[0]);
         n_buf.push_back(n4.v[1]);
         n_buf.push_back(n4.v[2]);
+        
+        if (texcoords.size() > 0) {
+          // Triangle 1 textures
+          uv_buf.push_back(t1.v[0]);
+          uv_buf.push_back(t1.v[1]);
+
+          uv_buf.push_back(t2.v[0]);
+          uv_buf.push_back(t2.v[1]);
+
+          uv_buf.push_back(t3.v[0]);
+          uv_buf.push_back(t3.v[1]);
+
+          // Triangle 2 textures
+          uv_buf.push_back(t1.v[0]);
+          uv_buf.push_back(t1.v[1]);
+
+          uv_buf.push_back(t3.v[0]);
+          uv_buf.push_back(t3.v[1]);
+
+          uv_buf.push_back(t4.v[0]);
+          uv_buf.push_back(t4.v[1]);
+        }
     }
     else
     {

@@ -1,3 +1,5 @@
+#ifndef LOGGER_H
+#define LOGGER_H
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -54,3 +56,5 @@ void dump(mat4x4 m) {
   printf("---------\n");
 }
 
+
+#endif

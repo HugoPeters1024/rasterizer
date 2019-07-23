@@ -1,6 +1,7 @@
 #include "linmath.h"
 
 #include "shader.h"
+#include "resources.h"
 #include "linmath.h"
 #include "obj_loader.h"
 #include "keyboard.h"
@@ -10,20 +11,21 @@ class Mesh
 {
 private:
   GLuint vao;
-  GLuint vbo, nbo;
+  GLuint vbo, nbo, uvo;
   unsigned int triangle_count;
 
   void getMvp(mat4x4 m) const;
 public:
   vec3 position, rotation, anchor;
+  GLuint tex;
   float scale;
-  Mesh(const char* model);
+  Mesh(const ResourceManager* RM, const char* model);
 
   void draw(const Shader* shader, const Camera* camera) const;
   void update(Keyboard* keyboard);
 };
 
-Mesh::Mesh(const char* model)
+Mesh::Mesh(const ResourceManager* RM, const char* model)
 {
   vec3_zero(position);
   vec3_zero(rotation);
@@ -32,10 +34,13 @@ Mesh::Mesh(const char* model)
   scale = 1;
   logDebug("Initializing Mesh");
 
+  tex = RM->getTexture("white");
+
   auto obj = cObj(model);
   std::vector<float> vertices;
   std::vector<float> normals;
-  obj.renderBuffers(vertices, normals);
+  std::vector<float> uvs;
+  obj.renderBuffers(vertices, normals, uvs);
   triangle_count = vertices.size() / 3;
 
 
@@ -43,6 +48,7 @@ Mesh::Mesh(const char* model)
   glGenVertexArrays(1, &vao);
   glGenBuffers(1, &vbo);
   glGenBuffers(1, &nbo);
+  glGenBuffers(1, &uvo);
 
   glBindVertexArray(vao);
 
@@ -50,10 +56,13 @@ Mesh::Mesh(const char* model)
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(float), vertices.data(), GL_STATIC_DRAW);
 
-  // Fill vertices
+  // Fill normals
   glBindBuffer(GL_ARRAY_BUFFER, nbo);
   glBufferData(GL_ARRAY_BUFFER, normals.size()*sizeof(float), normals.data(), GL_STATIC_DRAW);
-
+  
+  // Fill uvs
+  glBindBuffer(GL_ARRAY_BUFFER, uvo);
+  glBufferData(GL_ARRAY_BUFFER, uvs.size()*sizeof(float), uvs.data(), GL_STATIC_DRAW);
 
   glBindVertexArray(0);
 
@@ -66,22 +75,14 @@ void Mesh::draw(const Shader* shader, const Camera* camera) const
    getMvp(mvp);
    glBindVertexArray(vao);
    shader->bind(camera, mvp);
+   glActiveTexture(GL_TEXTURE0);
+   glBindTexture(GL_TEXTURE_2D, tex);
    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-   glVertexAttribPointer(
-      shader->vPos,
-      3,
-      GL_FLOAT,
-      GL_FALSE,
-      0,
-      (void*)(sizeof(float) * 0));
+   glVertexAttribPointer(shader->vPos, 3, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float) * 0));
    glBindBuffer(GL_ARRAY_BUFFER, nbo);
-   glVertexAttribPointer(
-      shader->vNormal,
-      3,
-      GL_FLOAT,
-      GL_FALSE,
-      0,
-      (void*)(sizeof(float) * 0));
+   glVertexAttribPointer(shader->vNormal, 3, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float) * 0));
+   glBindBuffer(GL_ARRAY_BUFFER, uvo);
+   glVertexAttribPointer(shader->vUV, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float) * 0));
    glDrawArrays(GL_TRIANGLES, 0, triangle_count);
    glBindVertexArray(0);
 }
