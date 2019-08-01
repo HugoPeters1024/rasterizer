@@ -60,6 +60,7 @@ class cObj {
     ~cObj();
 
   void renderBuffers(std::vector<float> &v_buf, std::vector<float> &n_buf, std::vector<float> &uv_buf) const;
+  void renderBuffersTangents(std::vector<float> &v_buf, std::vector<float> &n_buf, std::vector<float> &uv_buf, std::vector<float> &t_buf, std::vector<float> &bt_buf) const;
 };
 
 cObj::cObj(std::string filename) {
@@ -266,6 +267,59 @@ void cObj::renderBuffers(std::vector<float> &v_buf, std::vector<float> &n_buf, s
     }
   }
   logDebug("Expanded %zu faces to %zu coordinates", faces.size(), v_buf.size());
+}
+
+void cObj::renderBuffersTangents(std::vector<float> &v_buf, std::vector<float> &n_buf, std::vector<float> &uv_buf, std::vector<float> &t_buf, std::vector<float> &bt_buf) const
+{
+  renderBuffers(v_buf, n_buf, uv_buf);
+  for(int i=0, ui=0; i<v_buf.size(); i+=9, ui+=6)
+  {
+     vec3 v1 = { v_buf[i+0], v_buf[i+1], v_buf[i+2]};
+     vec3 v2 = { v_buf[i+3], v_buf[i+4], v_buf[i+5]};
+     vec3 v3 = { v_buf[i+6], v_buf[i+7], v_buf[i+8]};
+
+     vec2 uv1 = { uv_buf[ui+0], uv_buf[ui+1]};
+     vec2 uv2 = { uv_buf[ui+2], uv_buf[ui+3]};
+     vec2 uv3 = { uv_buf[ui+4], uv_buf[ui+5]};
+
+     vec3 dpos1, dpos2, duv1, duv2;
+     vec3_sub(dpos1, v2, v1);
+     vec3_sub(dpos2, v3, v1);
+     vec2_sub(duv1, uv2, uv1);
+     vec2_sub(duv2, uv3, uv1);
+
+     float r = 1.0f / (duv1[0] * duv2[1] - duv1[1] * duv2[0]);
+     vec3 tl, tr, tf, btl, btr, btf; // left, right and final side of calculations;
+     vec3_scale(tl, dpos1, duv2[1]);
+     vec3_scale(tr, dpos2, duv1[1]);
+     vec3_sub(tf, tl, tr);
+     vec3_scale(tf, tf, r);
+
+     vec3_scale(btl, dpos2, duv1[0]);
+     vec3_scale(btr, dpos1, duv2[0]);
+     vec3_sub(btf, btl, btr);
+     vec3_scale(btf, btf, r);
+
+     t_buf.push_back(tf[0]);
+     t_buf.push_back(tf[1]);
+     t_buf.push_back(tf[2]);
+     t_buf.push_back(tf[0]);
+     t_buf.push_back(tf[1]);
+     t_buf.push_back(tf[2]);
+     t_buf.push_back(tf[0]);
+     t_buf.push_back(tf[1]);
+     t_buf.push_back(tf[2]);
+
+     bt_buf.push_back(btf[0]);
+     bt_buf.push_back(btf[1]);
+     bt_buf.push_back(btf[2]);
+     bt_buf.push_back(btf[0]);
+     bt_buf.push_back(btf[1]);
+     bt_buf.push_back(btf[2]);
+     bt_buf.push_back(btf[0]);
+     bt_buf.push_back(btf[1]);
+     bt_buf.push_back(btf[2]);
+  }
 }
 
 cObj::~cObj() { }

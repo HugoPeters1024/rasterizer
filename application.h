@@ -16,7 +16,7 @@ class Application
     ResourceManager* RM;
     IMesh* person;
     IMesh* stack;
-    DefaultMesh* floor;
+    IMesh* floor;
     Camera* camera;
     float fov;
   public:
@@ -28,12 +28,9 @@ class Application
 void Application::init()
 {
   RM = new ResourceManager();
-  RM->loadTexture("floor", "texture.jpg");
-  RM->loadTexture("white", "white.png");
   person = new DefaultMesh(RM, "male.obj");
   stack = new DefaultMesh(RM, "stack.obj");
-  floor = new DefaultMesh(RM, "floor.obj");
-  floor->tex = RM->getTexture("floor");
+  floor = new NormalMappedMesh(RM, "floor.obj");
   floor->scale = 10;
   stack->rotation[0] = 3.141592f / 2.0f;
   stack->position[1] = 10;
@@ -54,6 +51,7 @@ void Application::loop(int w, int h, Keyboard* keyboard)
   person->draw(camera);
   stack->draw(camera);
   floor->draw(camera);
+  floor->rotation[1] += 0.004f;
 
   stack->position[2] -= 0.005f;
   stack->rotation[2] += 0.01f;

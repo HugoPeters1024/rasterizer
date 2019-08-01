@@ -9,17 +9,24 @@
 class ResourceManager {
   private:
     std::map<std::string, GLuint> textures;
-    Shader* defaultShader;
+    DefaultShader* defaultShader;
+    NormalMappedShader* normalMappedShader;
+    void loadTexture(const char* handle, const char* filename);
   public:
     ResourceManager();
-    void loadTexture(const char* handle, const char* filename);
     GLuint getTexture(const char* handle) const { return textures.at(handle); };
-    Shader* getDefaultShader() const { return defaultShader; };
+    DefaultShader* getDefaultShader() const { return defaultShader; };
+    NormalMappedShader* getNormalMappedShader() const { return normalMappedShader; };
 };
 
 ResourceManager::ResourceManager()
 {
-  defaultShader = new Shader();
+  defaultShader = new DefaultShader();
+  normalMappedShader = new NormalMappedShader();
+  loadTexture("floor", "textures/texture.jpg");
+  loadTexture("white", "textures/white.png");
+  loadTexture("wall", "textures/wall.jpg");
+  loadTexture("wall_norm", "textures/wall_norm.jpg");
 }
 
 
@@ -32,6 +39,7 @@ void ResourceManager::loadTexture(const char* handle, const char* filename)
   unsigned char* data = stbi_load(filename, &width, &height, &nrChannels, 0);
   if (!data) {
     logError("Could not load texture: %s", filename);
+    exit(5);
   } else {
     logInfo("loaded texture %s with size %ix%i", filename, width, height);
   }

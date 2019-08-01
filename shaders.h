@@ -1,9 +1,11 @@
 #include <array>
 #include <string>
+#include <sstream>
 
 #include "keyboard.h"
 #include "camera.h"
 #include "abstract.h"
+#include "exceptions.h"
 
 #define NUM_LIGHTS 10
 
@@ -36,33 +38,61 @@ inline static GLuint CompileShader(GLint type, std::string &source)
   return shader;
 };
 
-class Shader
+inline static GLuint CompileShaderF(GLuint type, const char* filename)
 {
-private:
-  static std::string vs_src;
-  static std::string fs_src;
+  logDebug("reading shader source from %s", filename);
+  std::ifstream t(filename);
+  if (!t)
+    throw ShaderMissingException(filename);
+  std::stringstream buf;
+  buf << t.rdbuf();
+  std::string src = buf.str();
+  return CompileShader(type, src);
+}
 
+inline static GLuint GenerateProgram(GLuint vs, GLuint fs)
+{
+  GLuint program = glCreateProgram();
+  glAttachShader(program, vs);
+  glAttachShader(program, fs);
+  glLinkProgram(program);
+  GLint isLinked = 0;
+  glGetProgramiv(program, GL_LINK_STATUS, &isLinked);
+  if (!isLinked)
+  {
+    GLint maxLength = 0;  
+    glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
+    GLchar* errorLog = (GLchar*)malloc(maxLength);
+    glGetProgramInfoLog(program, maxLength, &maxLength, errorLog);
+
+    logError("Shader linker error: %s", errorLog);
+
+    glDeleteProgram(program);
+    exit(5);
+  }
+  return program;
+}
+
+class DefaultShader
+{
 public:
   GLint vPos, vNormal, vUV, uMvp, uCamera, uCamPos;
   std::array<GLint, 10> uLightsCol;
   std::array<GLint, 10> uLightsPos;
   GLuint program;
-  Shader();
+  DefaultShader();
 
   void prepare(GLuint vbo, GLuint nbo, GLuint uvo) const;
-  void bind(const Camera* camera, mat4x4 &mvp) const;
+  void bind(const Camera* camera, mat4x4 &mvp, GLuint tex) const;
 };
 
-Shader::Shader()
+DefaultShader::DefaultShader()
 {
   logDebug("Initializing shader");
-  GLuint vs = CompileShader(GL_VERTEX_SHADER, vs_src);
-  GLuint fs = CompileShader(GL_FRAGMENT_SHADER, fs_src);
+  GLuint vs = CompileShaderF(GL_VERTEX_SHADER, "shaders/default_shader_vs.c");
+  GLuint fs = CompileShaderF(GL_FRAGMENT_SHADER, "shaders/default_shader_fs.c");
+  program = GenerateProgram(vs, fs);
 
-  program = glCreateProgram();
-  glAttachShader(program, vs);
-  glAttachShader(program, fs);
-  glLinkProgram(program);
 
   vPos = glGetAttribLocation(program, "vPos");
   vNormal = glGetAttribLocation(program, "vNormal");
@@ -83,7 +113,7 @@ Shader::Shader()
   logDebug("Done initializing shader");
 }
 
-void Shader::prepare(GLuint vbo, GLuint nbo, GLuint uvo) const
+void DefaultShader::prepare(GLuint vbo, GLuint nbo, GLuint uvo) const
 {
    glBindBuffer(GL_ARRAY_BUFFER, vbo);
    glVertexAttribPointer(vPos, 3, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float) * 0));
@@ -97,12 +127,15 @@ void Shader::prepare(GLuint vbo, GLuint nbo, GLuint uvo) const
    glEnableVertexAttribArray(vUV);
 }
 
-void Shader::bind(const Camera* camera, mat4x4 &mvp) const
+void DefaultShader::bind(const Camera* camera, mat4x4 &mvp, GLuint tex) const
 {
    mat4x4 m_camera;
    camera->getMatrix(m_camera);
 
    glUseProgram(program);
+
+   glActiveTexture(GL_TEXTURE0);
+   glBindTexture(GL_TEXTURE_2D, tex);
 
    glUniform3f(uLightsPos[0], 0, 5, -20);
    glUniform3f(uLightsCol[0], 200, 200, 300);
@@ -118,75 +151,98 @@ void Shader::bind(const Camera* camera, mat4x4 &mvp) const
    glUniformMatrix4fv(uMvp, 1, GL_FALSE, (const GLfloat*)mvp);
 }
 
+class NormalMappedShader
+{
+public:
+  GLint vPos, vNormal, vUV, vTangent, vBiTangent, uMvp, uCamera, uCamPos, uTex, uNormalTex;
+  std::array<GLint, 10> uLightsCol;
+  std::array<GLint, 10> uLightsPos;
+  GLuint program;
+  NormalMappedShader();
 
+  void prepare(GLuint vbo, GLuint nbo, GLuint uvo, GLuint tbo, GLuint btbo) const;
+  void bind(const Camera* camera, mat4x4 &mvp, GLuint tex, GLuint n_tex) const;
+};
 
-std::string Shader::vs_src = R"(
-#version 330 core
-layout(location = 0) in vec3 vPos;
-layout(location = 1) in vec3 vNormal;
-layout(location = 2) in vec2 vUV;
+NormalMappedShader::NormalMappedShader()
+{
+  logDebug("Initializing shader");
 
-uniform mat4 uMvp;
-uniform mat4 uCamera;
+  GLuint vs = CompileShaderF(GL_VERTEX_SHADER, "shaders/normalmapped_shader_vs.c");
+  GLuint fs = CompileShaderF(GL_FRAGMENT_SHADER, "shaders/normalmapped_shader_fs.c");
+  program = GenerateProgram(vs, fs);
 
-out vec3 pos;
-out vec3 normal;
-out vec2 uv;
+  vPos = glGetAttribLocation(program, "vPos");
+  vNormal = glGetAttribLocation(program, "vNormal");
+  vUV = glGetAttribLocation(program, "vUV");
+  vTangent = glGetAttribLocation(program, "vTangent");
+  vBiTangent = glGetAttribLocation(program, "vBiTangent");
+  uMvp = glGetUniformLocation(program, "uMvp");
+  uCamera = glGetUniformLocation(program, "uCamera");
+  uCamPos = glGetUniformLocation(program, "uCamPos");
 
+  uTex = glGetUniformLocation(program, "tex");
+  uNormalTex = glGetUniformLocation(program, "n_tex");
 
-void main() {
-   vec4 worldPos = uMvp * vec4(vPos, 1);
-   gl_Position = uCamera * worldPos; 
-   pos = worldPos.xyz;
-   normal = normalize( uMvp * vec4(vNormal, 0)).xyz;
-   uv = vUV / 5;
-})";
+  for(int i=0; i<uLightsPos.size(); i++) {
+    char name[12 + i / 10];
+    snprintf(name, sizeof(name), "lights_p[%i]", i);
+    uLightsPos[i] = glGetUniformLocation(program, name);
 
-std::string Shader::fs_src = R"(
-#version 330 core
-out vec4 color;
-
-in vec3 pos;
-in vec3 normal;
-in vec2 uv;
-
-uniform mat4 uCamera;
-uniform vec3 uCamPos;
-
-uniform sampler2D tex;
-
-#define NUM_LIGHTS 10
-
-// Array of structs is not supported
-uniform vec3 lights_p[NUM_LIGHTS]; 
-uniform vec3 lights_c[NUM_LIGHTS];
-
-void main() {
-  vec3 materialCol = texture(tex, uv).xyz;
-  // ambient component
-  vec3 fColor = 0.15f * materialCol;
-  vec3 cameraPos = (uCamera * vec4(0, 0, -1, 1)).xyz;
-
-  for(int i=0; i<NUM_LIGHTS; i++) {
-    vec3 light_p = lights_p[i];
-    vec3 light_c = lights_c[i];
-
-    vec3 lightVec = light_p - pos;
-
-    float dist = length(lightVec);
-    vec3 lightDir = lightVec / dist;
-    float attenuation = 1.0f / (dist * dist);
-
-    float vis = max(dot(lightDir, normal), 0);
-    vec3 diffuse = vis * light_c * attenuation;
-
-    vec3 E = normalize(uCamPos - pos);
-    vec3 R = reflect(-lightDir, normal);
-    float cosAlpha = clamp(dot(E, R), 0, 1); 
-    vec3 specular = materialCol * light_c * pow(cosAlpha, 100) * attenuation;
-
-    fColor += diffuse + specular;
+    snprintf(name, sizeof(name), "lights_c[%i]", i);
+    uLightsCol[i] = glGetUniformLocation(program, name);
   }
 
-  color = vec4(fColor, 1.0f);
-})";
+  logDebug("Done initializing shader");
+}
+
+
+void NormalMappedShader::prepare(GLuint vbo, GLuint nbo, GLuint uvo, GLuint tbo, GLuint btbo) const
+{
+   logError("debugging: %i %i", vTangent, vBiTangent);
+   glBindBuffer(GL_ARRAY_BUFFER, vbo);
+   glVertexAttribPointer(vPos, 3, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float) * 0));
+   glBindBuffer(GL_ARRAY_BUFFER, nbo);
+   glVertexAttribPointer(vNormal, 3, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float) * 0));
+   glBindBuffer(GL_ARRAY_BUFFER, uvo);
+   glVertexAttribPointer(vUV, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float) * 0));
+   glBindBuffer(GL_ARRAY_BUFFER, tbo);
+   glVertexAttribPointer(vTangent, 3, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float) * 0));
+   glBindBuffer(GL_ARRAY_BUFFER, btbo);
+   glVertexAttribPointer(vBiTangent, 3, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float) * 0));
+
+   glEnableVertexAttribArray(vPos);
+   glEnableVertexAttribArray(vNormal);
+   glEnableVertexAttribArray(vUV);
+   glEnableVertexAttribArray(vTangent);
+   glEnableVertexAttribArray(vBiTangent);
+}
+
+void NormalMappedShader::bind(const Camera* camera, mat4x4 &mvp, GLuint tex, GLuint n_tex) const
+{
+   mat4x4 m_camera;
+   camera->getMatrix(m_camera);
+
+   glUseProgram(program);
+
+   glUniform1i(uTex, 0);
+   glActiveTexture(GL_TEXTURE0);
+   glBindTexture(GL_TEXTURE_2D, tex);
+   glUniform1i(uNormalTex, 1);
+   glActiveTexture(GL_TEXTURE1);
+   glBindTexture(GL_TEXTURE_2D, n_tex);
+
+   glUniform3f(uLightsPos[0], 0, 5, -20);
+   glUniform3f(uLightsCol[0], 200, 200, 300);
+
+   glUniform3f(uLightsPos[1], 0, 5, 20);
+   glUniform3f(uLightsCol[1], 400, 100, 100);
+
+   glUniform3f(uLightsPos[2], 0, 30, 0);
+   glUniform3f(uLightsCol[2], 10, 150, 10);
+
+   glUniform3f(uCamPos, camera->pos[0], camera->pos[1], camera->pos[2]);
+   glUniformMatrix4fv(uCamera, 1, GL_FALSE, (const GLfloat*)m_camera);
+   glUniformMatrix4fv(uMvp, 1, GL_FALSE, (const GLfloat*)mvp);
+}
+
