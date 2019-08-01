@@ -4,6 +4,8 @@
 #include <vector>
 #include <sstream>
 
+#include "vec.h"
+
 
 struct vertex {
     std::vector<float> v;
@@ -274,51 +276,32 @@ void cObj::renderBuffersTangents(std::vector<float> &v_buf, std::vector<float> &
   renderBuffers(v_buf, n_buf, uv_buf);
   for(int i=0, ui=0; i<v_buf.size(); i+=9, ui+=6)
   {
-     vec3 v1 = { v_buf[i+0], v_buf[i+1], v_buf[i+2]};
-     vec3 v2 = { v_buf[i+3], v_buf[i+4], v_buf[i+5]};
-     vec3 v3 = { v_buf[i+6], v_buf[i+7], v_buf[i+8]};
+     Vector3 v1 = Vector3(v_buf[i+0], v_buf[i+1], v_buf[i+2]);
+     Vector3 v2 = Vector3(v_buf[i+3], v_buf[i+4], v_buf[i+5]);
+     Vector3 v3 = Vector3(v_buf[i+6], v_buf[i+7], v_buf[i+8]);
 
-     vec2 uv1 = { uv_buf[ui+0], uv_buf[ui+1]};
-     vec2 uv2 = { uv_buf[ui+2], uv_buf[ui+3]};
-     vec2 uv3 = { uv_buf[ui+4], uv_buf[ui+5]};
+     Vector2 uv1 = Vector2(uv_buf[ui+0], uv_buf[ui+1]);
+     Vector2 uv2 = Vector2(uv_buf[ui+2], uv_buf[ui+3]);
+     Vector2 uv3 = Vector2(uv_buf[ui+4], uv_buf[ui+5]);
 
-     vec3 dpos1, dpos2, duv1, duv2;
-     vec3_sub(dpos1, v2, v1);
-     vec3_sub(dpos2, v3, v1);
-     vec2_sub(duv1, uv2, uv1);
-     vec2_sub(duv2, uv3, uv1);
+     Vector3 vedge1 = v2 - v1;
+     Vector3 vedge2 = v3 - v1;
+     Vector2 uedge1 = uv2 - uv1;
+     Vector2 uedge2 = uv3 - uv1;
 
-     float r = 1.0f / (duv1[0] * duv2[1] - duv1[1] * duv2[0]);
-     vec3 tl, tr, tf, btl, btr, btf; // left, right and final side of calculations;
-     vec3_scale(tl, dpos1, duv2[1]);
-     vec3_scale(tr, dpos2, duv1[1]);
-     vec3_sub(tf, tl, tr);
-     vec3_scale(tf, tf, r);
+     float r = 1.0f / (uedge1.x * uedge2.y - uedge1.y * uedge2.x);
+     Vector3 tangent = (vedge1 * uedge2.y - vedge2 * uedge1.y) * r;
+     Vector3 bitangent = (vedge2 * uedge1.x - vedge1 * uedge2.x) * r;
 
-     vec3_scale(btl, dpos2, duv1[0]);
-     vec3_scale(btr, dpos1, duv2[0]);
-     vec3_sub(btf, btl, btr);
-     vec3_scale(btf, btf, r);
+     for(int q=0; q<3; q++) {
+       t_buf.push_back(tangent.x);
+       t_buf.push_back(tangent.y);
+       t_buf.push_back(tangent.z);
 
-     t_buf.push_back(tf[0]);
-     t_buf.push_back(tf[1]);
-     t_buf.push_back(tf[2]);
-     t_buf.push_back(tf[0]);
-     t_buf.push_back(tf[1]);
-     t_buf.push_back(tf[2]);
-     t_buf.push_back(tf[0]);
-     t_buf.push_back(tf[1]);
-     t_buf.push_back(tf[2]);
-
-     bt_buf.push_back(btf[0]);
-     bt_buf.push_back(btf[1]);
-     bt_buf.push_back(btf[2]);
-     bt_buf.push_back(btf[0]);
-     bt_buf.push_back(btf[1]);
-     bt_buf.push_back(btf[2]);
-     bt_buf.push_back(btf[0]);
-     bt_buf.push_back(btf[1]);
-     bt_buf.push_back(btf[2]);
+       bt_buf.push_back(bitangent.x);
+       bt_buf.push_back(bitangent.y);
+       bt_buf.push_back(bitangent.z);
+     }
   }
 }
 

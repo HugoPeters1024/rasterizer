@@ -7,6 +7,7 @@
 #define GL3_PROTOTYPES 1
 #include <GLFW/glfw3.h>
 #include "linmath.h"
+#include "vec.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
