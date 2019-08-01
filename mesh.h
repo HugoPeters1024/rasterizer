@@ -1,31 +1,31 @@
 #include "linmath.h"
-
-#include "shader.h"
+#include "shaders.h"
 #include "resources.h"
 #include "linmath.h"
 #include "obj_loader.h"
 #include "keyboard.h"
 #include "camera.h"
+#include "abstract.h"
 
-class Mesh
+
+class DefaultMesh : public IMesh
 {
 private:
+  Shader* shader;
   GLuint vao;
   GLuint vbo, nbo, uvo;
   unsigned int triangle_count;
 
-  void getMvp(mat4x4 m) const;
 public:
-  vec3 position, rotation, anchor;
   GLuint tex;
   float scale;
-  Mesh(const ResourceManager* RM, const char* model);
-
-  void draw(const Shader* shader, const Camera* camera) const;
-  void update(Keyboard* keyboard);
+  DefaultMesh(const ResourceManager* RM, const char* model);
+  void draw(const Camera* camera) const override;
+  void update(Keyboard* keyboard) override;
+  void getMvp(mat4x4 m) const override;
 };
 
-Mesh::Mesh(const ResourceManager* RM, const char* model)
+DefaultMesh::DefaultMesh(const ResourceManager* RM, const char* model)
 {
   vec3_zero(position);
   vec3_zero(rotation);
@@ -35,6 +35,7 @@ Mesh::Mesh(const ResourceManager* RM, const char* model)
   logDebug("Initializing Mesh");
 
   tex = RM->getTexture("white");
+  shader = RM->getDefaultShader();
 
   auto obj = cObj(model);
   std::vector<float> vertices;
@@ -64,12 +65,15 @@ Mesh::Mesh(const ResourceManager* RM, const char* model)
   glBindBuffer(GL_ARRAY_BUFFER, uvo);
   glBufferData(GL_ARRAY_BUFFER, uvs.size()*sizeof(float), uvs.data(), GL_STATIC_DRAW);
 
+  // Assumes vao is bound
+  shader->prepare(vbo, nbo, uvo);
+
   glBindVertexArray(0);
 
   logDebug("Done initializing mesh");
 }
 
-void Mesh::draw(const Shader* shader, const Camera* camera) const
+void DefaultMesh::draw(const Camera* camera) const
 {
    mat4x4 mvp;
    getMvp(mvp);
@@ -77,21 +81,15 @@ void Mesh::draw(const Shader* shader, const Camera* camera) const
    shader->bind(camera, mvp);
    glActiveTexture(GL_TEXTURE0);
    glBindTexture(GL_TEXTURE_2D, tex);
-   glBindBuffer(GL_ARRAY_BUFFER, vbo);
-   glVertexAttribPointer(shader->vPos, 3, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float) * 0));
-   glBindBuffer(GL_ARRAY_BUFFER, nbo);
-   glVertexAttribPointer(shader->vNormal, 3, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float) * 0));
-   glBindBuffer(GL_ARRAY_BUFFER, uvo);
-   glVertexAttribPointer(shader->vUV, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float) * 0));
    glDrawArrays(GL_TRIANGLES, 0, triangle_count);
    glBindVertexArray(0);
 }
 
-void Mesh::update(Keyboard* keyboard)
+void DefaultMesh::update(Keyboard* keyboard)
 {
 }
 
-void Mesh::getMvp(mat4x4 f) const
+void DefaultMesh::getMvp(mat4x4 f) const
 {
   mat4x4 i, rx, ry, rz, t, ta, ta_r, s;
   mat4x4_identity(i);

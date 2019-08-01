@@ -9,10 +9,18 @@
 class ResourceManager {
   private:
     std::map<std::string, GLuint> textures;
+    Shader* defaultShader;
   public:
+    ResourceManager();
     void loadTexture(const char* handle, const char* filename);
     GLuint getTexture(const char* handle) const { return textures.at(handle); };
+    Shader* getDefaultShader() const { return defaultShader; };
 };
+
+ResourceManager::ResourceManager()
+{
+  defaultShader = new Shader();
+}
 
 
 void ResourceManager::loadTexture(const char* handle, const char* filename)

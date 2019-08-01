@@ -3,13 +3,13 @@
 
 #include "keyboard.h"
 #include "camera.h"
+#include "abstract.h"
 
 #define NUM_LIGHTS 10
 
 inline static GLuint CompileShader(GLint type, std::string &source)
 {
   // Preprocess macro's
-
   GLuint shader = glCreateShader(type);
   const GLchar* c_str = source.c_str();
   glShaderSource(shader, 1, &c_str, NULL);
@@ -49,6 +49,7 @@ public:
   GLuint program;
   Shader();
 
+  void prepare(GLuint vbo, GLuint nbo, GLuint uvo) const;
   void bind(const Camera* camera, mat4x4 &mvp) const;
 };
 
@@ -82,15 +83,24 @@ Shader::Shader()
   logDebug("Done initializing shader");
 }
 
+void Shader::prepare(GLuint vbo, GLuint nbo, GLuint uvo) const
+{
+   glBindBuffer(GL_ARRAY_BUFFER, vbo);
+   glVertexAttribPointer(vPos, 3, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float) * 0));
+   glBindBuffer(GL_ARRAY_BUFFER, nbo);
+   glVertexAttribPointer(vNormal, 3, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float) * 0));
+   glBindBuffer(GL_ARRAY_BUFFER, uvo);
+   glVertexAttribPointer(vUV, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float) * 0));
+
+   glEnableVertexAttribArray(vPos);
+   glEnableVertexAttribArray(vNormal);
+   glEnableVertexAttribArray(vUV);
+}
+
 void Shader::bind(const Camera* camera, mat4x4 &mvp) const
 {
    mat4x4 m_camera;
    camera->getMatrix(m_camera);
-
-   // Assumes that the appropriate vao is bound
-   glEnableVertexAttribArray(vPos);
-   glEnableVertexAttribArray(vNormal);
-   glEnableVertexAttribArray(vUV);
 
    glUseProgram(program);
 
@@ -152,11 +162,10 @@ uniform vec3 lights_p[NUM_LIGHTS];
 uniform vec3 lights_c[NUM_LIGHTS];
 
 void main() {
-  // ambient component
   vec3 materialCol = texture(tex, uv).xyz;
+  // ambient component
   vec3 fColor = 0.15f * materialCol;
   vec3 cameraPos = (uCamera * vec4(0, 0, -1, 1)).xyz;
-
 
   for(int i=0; i<NUM_LIGHTS; i++) {
     vec3 light_p = lights_p[i];

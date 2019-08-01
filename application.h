@@ -14,10 +14,9 @@ class Application
 {
   private:
     ResourceManager* RM;
-    Shader* shader;
-    Mesh* person;
-    Mesh* stack;
-    Mesh* floor;
+    IMesh* person;
+    IMesh* stack;
+    DefaultMesh* floor;
     Camera* camera;
     float fov;
   public:
@@ -31,10 +30,9 @@ void Application::init()
   RM = new ResourceManager();
   RM->loadTexture("floor", "texture.jpg");
   RM->loadTexture("white", "white.png");
-  shader = new Shader();
-  person = new Mesh(RM, "male.obj");
-  stack = new Mesh(RM, "stack.obj");
-  floor = new Mesh(RM, "floor.obj");
+  person = new DefaultMesh(RM, "male.obj");
+  stack = new DefaultMesh(RM, "stack.obj");
+  floor = new DefaultMesh(RM, "floor.obj");
   floor->tex = RM->getTexture("floor");
   floor->scale = 10;
   stack->rotation[0] = 3.141592f / 2.0f;
@@ -53,9 +51,9 @@ void Application::loop(int w, int h, Keyboard* keyboard)
   person->update(keyboard);
 
   // Todo: pass camera pos to shader
-  person->draw(shader, camera);
-  stack->draw(shader, camera);
-  floor->draw(shader, camera);
+  person->draw(camera);
+  stack->draw(camera);
+  floor->draw(camera);
 
   stack->position[2] -= 0.005f;
   stack->rotation[2] += 0.01f;
