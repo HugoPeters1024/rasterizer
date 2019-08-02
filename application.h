@@ -35,22 +35,26 @@ void Application::init()
   camera->pos.z = -10.5f;
 
   Floor* floor = new Floor();
-  floor->scale = Vector3(15); 
+  Floor* wall = new Floor();
+  wall->rotation.x = -PI / 2;
+  wall->position.z = 15;
+  wall->position.y = 15;
 
   Player* player = new Player();
   player->rotation.y = PI;
 
   meshes.push_back(floor);
+  meshes.push_back(wall);
   meshes.push_back(player);
 }
 
 void Application::loop(int w, int h, Keyboard* keyboard)
 {
-  time+=0.05f;
-  RM->lightset[0].position.x = 10 * sin(time);
-  RM->lightset[0].position.z = 10 * cos(time);
-  RM->lightset[1].position.x = -10 * sin(time);
-  RM->lightset[1].position.z = -10 * cos(time);
+  time+=0.03f;
+  RM->lightset[0].position.x = 11 * sin(time);
+  RM->lightset[0].position.z = 11 * cos(time);
+  RM->lightset[1].position.x = -11 * sin(time);
+  RM->lightset[1].position.z = -11 * cos(time);
   float ratio = w / (float)h;
   camera->update(ratio, keyboard);
 

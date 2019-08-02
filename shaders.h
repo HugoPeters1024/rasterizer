@@ -81,7 +81,7 @@ class DefaultShader
 {
 private:
   const LightSet* lightset;
-  GLint vPos, vNormal, vUV, uMvp, uCamera, uCamPos;
+  GLint vPos, vNormal, vUV, uMvp, uCamera, uCamPos, uTexSize;
   std::array<GLint, 10> uLightsCol;
   std::array<GLint, 10> uLightsPos;
   GLuint program;
@@ -89,7 +89,7 @@ public:
   DefaultShader(const LightSet* lights);
 
   void prepare(GLuint vbo, GLuint nbo, GLuint uvo) const;
-  void bind(const Camera* camera, Matrix4 mvp, GLuint tex) const;
+  void bind(const Camera* camera, Matrix4 mvp, GLuint tex, float texSize = 1) const;
 };
 
 DefaultShader::DefaultShader(const LightSet* lights) : lightset(lights)
@@ -106,6 +106,7 @@ DefaultShader::DefaultShader(const LightSet* lights) : lightset(lights)
   uMvp = glGetUniformLocation(program, "uMvp");
   uCamera = glGetUniformLocation(program, "uCamera");
   uCamPos = glGetUniformLocation(program, "uCamPos");
+  uTexSize = glGetUniformLocation(program, "uTexSize");
 
   for(int i=0; i<uLightsPos.size(); i++) {
     char name[12 + i / 10];
@@ -133,7 +134,7 @@ void DefaultShader::prepare(GLuint vbo, GLuint nbo, GLuint uvo) const
    glEnableVertexAttribArray(vUV);
 }
 
-void DefaultShader::bind(const Camera* camera, Matrix4 mvp, GLuint tex) const
+void DefaultShader::bind(const Camera* camera, Matrix4 mvp, GLuint tex, float texSize) const
 {
    mat4x4 m_camera, u_mvp;
    camera->getMatrix().unpack(m_camera);
@@ -143,6 +144,7 @@ void DefaultShader::bind(const Camera* camera, Matrix4 mvp, GLuint tex) const
    lightset->sendToShader(uLightsPos, uLightsCol);
 
 
+   glUniform1f(uTexSize, texSize);
    glActiveTexture(GL_TEXTURE0);
    glBindTexture(GL_TEXTURE_2D, tex);
 
@@ -154,7 +156,7 @@ void DefaultShader::bind(const Camera* camera, Matrix4 mvp, GLuint tex) const
 class NormalMappedShader
 {
 private:
-  GLint vPos, vNormal, vUV, vTangent, vBiTangent, uMvp, uCamera, uCamPos, uTex, uNormalTex;
+  GLint vPos, vNormal, vUV, vTangent, vBiTangent, uMvp, uCamera, uCamPos, uTex, uNormalTex, uTexSize;
   std::array<GLint, 10> uLightsCol;
   std::array<GLint, 10> uLightsPos;
   GLuint program;
@@ -163,7 +165,7 @@ public:
   NormalMappedShader(const LightSet* lights);
 
   void prepare(GLuint vbo, GLuint nbo, GLuint uvo, GLuint tbo, GLuint btbo) const;
-  void bind(const Camera* camera, Matrix4 mvp, GLuint tex, GLuint n_tex) const;
+  void bind(const Camera* camera, Matrix4 mvp, GLuint tex, GLuint n_tex, float texSize=1) const;
 };
 
 NormalMappedShader::NormalMappedShader(const LightSet* lights) : lights(lights)
@@ -182,6 +184,7 @@ NormalMappedShader::NormalMappedShader(const LightSet* lights) : lights(lights)
   uMvp = glGetUniformLocation(program, "uMvp");
   uCamera = glGetUniformLocation(program, "uCamera");
   uCamPos = glGetUniformLocation(program, "uCamPos");
+  uTexSize = glGetUniformLocation(program, "uTexSize");
 
   uTex = glGetUniformLocation(program, "tex");
   uNormalTex = glGetUniformLocation(program, "n_tex");
@@ -220,7 +223,7 @@ void NormalMappedShader::prepare(GLuint vbo, GLuint nbo, GLuint uvo, GLuint tbo,
    glEnableVertexAttribArray(vBiTangent);
 }
 
-void NormalMappedShader::bind(const Camera* camera, Matrix4 mvp, GLuint tex, GLuint n_tex) const
+void NormalMappedShader::bind(const Camera* camera, Matrix4 mvp, GLuint tex, GLuint n_tex, float texSize) const
 {
    mat4x4 m_camera, u_mvp;
    camera->getMatrix().unpack(m_camera);
@@ -229,23 +232,13 @@ void NormalMappedShader::bind(const Camera* camera, Matrix4 mvp, GLuint tex, GLu
    glUseProgram(program);
    lights->sendToShader(uLightsPos, uLightsCol);
 
+   glUniform1f(uTexSize, texSize);
    glUniform1i(uTex, 0);
    glActiveTexture(GL_TEXTURE0);
    glBindTexture(GL_TEXTURE_2D, tex);
    glUniform1i(uNormalTex, 1);
    glActiveTexture(GL_TEXTURE1);
    glBindTexture(GL_TEXTURE_2D, n_tex);
-
-   /*
-   glUniform3f(uLightsPos[0], 0, 5, -20);
-   glUniform3f(uLightsCol[0], 200, 200, 300);
-
-   glUniform3f(uLightsPos[1], 0, 5, 20);
-   glUniform3f(uLightsCol[1], 400, 100, 100);
-
-   glUniform3f(uLightsPos[2], 0, 30, 0);
-   glUniform3f(uLightsCol[2], 10, 150, 10);
-   */
 
    glUniform3f(uCamPos, camera->pos.x, camera->pos.y, camera->pos.z);
    glUniformMatrix4fv(uCamera, 1, GL_FALSE, (const GLfloat*)m_camera);

@@ -16,7 +16,8 @@ class IMeshObject : public IGameObject {
 public:
   Vector3 position, rotation, anchor, scale;
 protected:
-  IMeshObject() : scale(Vector3(1)) {};
+  IMeshObject() : scale(Vector3(1)) {}
+  IMeshObject(float scale) : scale(scale) {}
   virtual Matrix4 getMvp() const {
     Matrix4 t = Matrix4::FromTranslation(position);
     Matrix4 r = Matrix4::FromAxisRotations(rotation);
@@ -29,10 +30,11 @@ protected:
 
 class Floor : public IMeshObject {
 public:
+  Floor() : IMeshObject(15) {}
   static IMesh* mesh;
   void update(Keyboard* keyboard) override {};
   void draw(Camera* camera) const override {
-    mesh->draw(camera, getMvp());
+    mesh->draw(camera, getMvp(), 0.8f);
   };
 };
 IMesh* Floor::mesh;

@@ -5,6 +5,7 @@ layout(location = 2) in vec2 vUV;
 
 uniform mat4 uMvp;
 uniform mat4 uCamera;
+uniform float uTexSize;
 
 out vec3 pos;
 out vec3 normal;
@@ -15,6 +16,6 @@ void main() {
    gl_Position = uCamera * worldPos; 
    pos = worldPos.xyz;
    normal = normalize( uMvp * vec4(vNormal, 0)).xyz;
-   uv = vUV / 5;
+   uv = vUV / uTexSize;
 }
 

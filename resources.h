@@ -28,11 +28,11 @@ class ResourceManager {
 
 ResourceManager::ResourceManager()
 {
-  lightset[0].color = Vector3(1,0,0);
+  lightset[0].color = Vector3(1,1,0);
   lightset[0].brightness = 100;
   lightset[0].position.y = 10;
 
-  lightset[1].color = Vector3(0,0,1);
+  lightset[1].color = Vector3(0,1,1);
   lightset[1].brightness = 100;
   lightset[1].position.y = 10;
   defaultShader = new DefaultShader(&lightset);

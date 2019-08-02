@@ -44,7 +44,7 @@ void main() {
 
     vec3 E = normalize(uCamPos - pos);
     vec3 R = reflect(-lightDir, tnormal);
-    float cosAlpha = clamp(dot(E, R), 0, 1); 
+    float cosAlpha = max(dot(E, R), 0); 
     vec3 specular = materialCol * light_c * pow(cosAlpha, 100) * attenuation;
 
     fColor += diffuse + specular;
