@@ -70,7 +70,6 @@ void Camera::update(float ratio, Keyboard* keyboard)
   if (keyboard->isDown(LOOK_LEFT))      viewDir -= view_tan;
   if (keyboard->isDown(LOOK_RIGHT))     viewDir += view_tan;
   viewDir.normalize();
-  viewDir.print();
   calcMatrix(ratio);
 }
 
