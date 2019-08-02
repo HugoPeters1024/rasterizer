@@ -40,14 +40,7 @@ IMesh* Floor::mesh;
 class Player : public IMeshObject {
 public:
   static IMesh* mesh;
-  Vector3 acc, vel;
   void update(Keyboard* keyboard) override {
-    if (position.y + vel.y > 0) {
-      vel += acc;
-      position += vel;
-    } else {
-      vel.y = -vel.y;
-    }
   };
   void draw(Camera* camera) const override {
     mesh->draw(camera, getMvp());

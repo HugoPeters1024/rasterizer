@@ -29,16 +29,14 @@ void Application::init()
   gameInit(RM);
 
   camera = new Camera(1.25f);
-  camera->pos[1] = 10.5f;
-  camera->pos[2] = -10.5f;
+  camera->pos.y = 10.5f;
+  camera->pos.z = -10.5f;
 
   Floor* floor = new Floor();
   floor->scale = Vector3(15); 
 
   Player* player = new Player();
   player->rotation.y = PI;
-  player->vel.y = 0.5f;
-  player->acc.y = -0.005f;
 
   meshes.push_back(floor);
   meshes.push_back(player);

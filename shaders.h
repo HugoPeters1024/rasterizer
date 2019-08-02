@@ -133,7 +133,7 @@ void DefaultShader::prepare(GLuint vbo, GLuint nbo, GLuint uvo) const
 void DefaultShader::bind(const Camera* camera, Matrix4 mvp, GLuint tex) const
 {
    mat4x4 m_camera, u_mvp;
-   camera->getMatrix(m_camera);
+   camera->getMatrix().unpack(m_camera);
    mvp.unpack(u_mvp);
 
    glUseProgram(program);
@@ -150,7 +150,7 @@ void DefaultShader::bind(const Camera* camera, Matrix4 mvp, GLuint tex) const
    glUniform3f(uLightsPos[2], 0, 30, 0);
    glUniform3f(uLightsCol[2], 10, 150, 10);
 
-   glUniform3f(uCamPos, camera->pos[0], camera->pos[1], camera->pos[2]);
+   glUniform3f(uCamPos, camera->pos.x, camera->pos.y, camera->pos.z);
    glUniformMatrix4fv(uCamera, 1, GL_FALSE, (const GLfloat*)m_camera);
    glUniformMatrix4fv(uMvp, 1, GL_FALSE, (const GLfloat*)u_mvp);
 }
@@ -225,7 +225,7 @@ void NormalMappedShader::prepare(GLuint vbo, GLuint nbo, GLuint uvo, GLuint tbo,
 void NormalMappedShader::bind(const Camera* camera, Matrix4 mvp, GLuint tex, GLuint n_tex) const
 {
    mat4x4 m_camera, u_mvp;
-   camera->getMatrix(m_camera);
+   camera->getMatrix().unpack(m_camera);
    mvp.unpack(u_mvp);
 
    glUseProgram(program);
@@ -246,7 +246,7 @@ void NormalMappedShader::bind(const Camera* camera, Matrix4 mvp, GLuint tex, GLu
    glUniform3f(uLightsPos[2], 0, 30, 0);
    glUniform3f(uLightsCol[2], 10, 150, 10);
 
-   glUniform3f(uCamPos, camera->pos[0], camera->pos[1], camera->pos[2]);
+   glUniform3f(uCamPos, camera->pos.x, camera->pos.y, camera->pos.z);
    glUniformMatrix4fv(uCamera, 1, GL_FALSE, (const GLfloat*)m_camera);
    glUniformMatrix4fv(uMvp, 1, GL_FALSE, (const GLfloat*)u_mvp);
 }

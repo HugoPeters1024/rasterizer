@@ -11,14 +11,15 @@ public:
   Vector2(float a) : x(a), y(a) {}
   Vector2(float x, float y) : x(x), y(y) {}
 
-  float normalize() { float l = length(); x/=l; y/=l; }
+  Vector2& normalize() { float l = length(); x/=l; y/=l; return *this; }
   float length() const { return sqrt(x*x + y*y); }
   Vector2 operator * (const Vector2 &o) const { return Vector2(x*o.x, y*o.y); } 
   Vector2 operator * (float s) const    { return Vector2(x*s, y*s);     }
   Vector2 operator / (const Vector2 &o) const { return Vector2(x/o.x, y/o.y); } 
   Vector2 operator + (const Vector2 &o) const { return Vector2(x+o.x, y+o.y); } 
-  Vector2& operator += (const Vector2 &o) { x += o.x, y += o.y; return *this; } 
+  Vector2& operator += (const Vector2 &o) { x += o.x; y += o.y; return *this; } 
   Vector2 operator - (const Vector2 &o) const { return Vector2(x-o.x, y-o.y); } 
+  Vector2& operator -= (const Vector2 &o) { x -= o.x; y -= o.y; return *this; }
   Vector2 operator - () const { return Vector2(-x, -y); }
   void print() { printf("(%f, %f)\n", x, y); }
 };
@@ -31,14 +32,22 @@ public:
   Vector3(float a) : x(a), y(a), z(a) {}
   Vector3(float x, float y, float z) : x(x), y(y), z(z) {}
 
-  float normalize() { float l = length(); x/=l; y/=l; z/=l; }
+  Vector3& normalize() { float l = length(); x/=l; y/=l; z/=l; return *this; }
   float length() const { return sqrt(x*x + y*y + z*z); }
+  static Vector3 cross(const Vector3 &a, const Vector3 &b) {
+    vec3 v;
+    vec3 va = { a.x, a.y, a.z };
+    vec3 vb = { b.x, b.y, b.z };
+    vec3_mul_cross(v, va, vb);
+    return Vector3(v[0], v[1], v[2]);
+  }
   Vector3 operator * (const Vector3 &o) const { return Vector3(x*o.x, y*o.y, z*o.z); } 
   Vector3 operator * (float s) const    { return Vector3(x*s, y*s, z*s);       }
   Vector3 operator / (const Vector3 &o) const { return Vector3(x/o.x, y/o.y, z/o.z); }
   Vector3 operator + (const Vector3 &o) const { return Vector3(x+o.x, y+o.y, z+o.z); } 
   Vector3& operator += (const Vector3 &o) { x += o.x; y += o.y; z += o.z; return *this; }
   Vector3 operator - (const Vector3 &o) const { return Vector3(x-o.x, y-o.y, z-o.z); }
+  Vector3& operator -= (const Vector3 &o) { x -= o.x; y -= o.y; z -= o.z; return *this; }
   Vector3 operator - () const { return Vector3(-x, -y, -z); }
   void print() { printf("(%f, %f, %f)\n", x, y, z); }
 };
@@ -78,9 +87,14 @@ public:
     Matrix4 Rx = Matrix4(rx);
     Matrix4 Ry = Matrix4(ry);
     Matrix4 Rz = Matrix4(rz);
-    return Rz * Ry * Rx;
+    return Rx * Ry * Rz;
   }
   static Matrix4 FromAxisRotations(Vector3 v) { return FromAxisRotations(v.x, v.y, v.z); }
+  static Matrix4 FromPerspective(float fov, float ratio, float znear, float zfar) {
+    mat4x4 r;
+    mat4x4_perspective(r, fov, ratio, znear, zfar);
+    return Matrix4(r);
+  }
   void print() const {
     for(int i=0; i<4; i++) {
       printf("%f, %f, %f, %f\n", data[0][i], data[1][i], data[2][i], data[3][i]);
