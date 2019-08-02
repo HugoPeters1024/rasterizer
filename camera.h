@@ -61,6 +61,7 @@ void Camera::update(float ratio, Keyboard* keyboard)
     if (ny < 0.99 && ny > -0.99) 
       viewDir += view_bitan;
   }
+
   if (keyboard->isDown(LOOK_DOWN)) {
     float ny = viewDir.y - view_bitan.y;
     if (ny < 0.99 && ny > -0.99)
@@ -84,7 +85,7 @@ void Camera::calcMatrix(float screenRatio)
 
   phi = atan2(viewDir.y, sqrt(viewDir.x * viewDir.x + viewDir.z * viewDir.z));
 
-  Matrix4 p = Matrix4::FromPerspective(fov, screenRatio, 0.1f, 1000.0f);
+  Matrix4 p = Matrix4::FromPerspective(fov, screenRatio, 0.1f, 100.0f);
   Matrix4 t = Matrix4::FromTranslation(-pos);
   Matrix4 r = Matrix4::FromAxisRotations(phi, theta, 0);
   matrix = p * r * t;

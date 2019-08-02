@@ -17,6 +17,7 @@ class Application
     std::vector<IGameObject*> meshes;
     Camera* camera;
     float fov;
+    float time;
   public:
     void init();
     void loop(int w, int h, Keyboard* keyboard);
@@ -25,6 +26,7 @@ class Application
 
 void Application::init()
 {
+  time=0;
   RM = new ResourceManager();
   gameInit(RM);
 
@@ -44,6 +46,11 @@ void Application::init()
 
 void Application::loop(int w, int h, Keyboard* keyboard)
 {
+  time+=0.05f;
+  RM->lightset[0].position.x = 10 * sin(time);
+  RM->lightset[0].position.z = 10 * cos(time);
+  RM->lightset[1].position.x = -10 * sin(time);
+  RM->lightset[1].position.z = -10 * cos(time);
   float ratio = w / (float)h;
   camera->update(ratio, keyboard);
 

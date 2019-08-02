@@ -7,6 +7,7 @@
 #include "logger.h"
 #include "shaders.h"
 #include "mesh.h"
+#include "light.h"
 
 class ResourceManager {
   private:
@@ -17,6 +18,7 @@ class ResourceManager {
     void loadTexture(const char* handle, const char* filename);
     void loadMesh(const char* handle, IMesh* mesh) { meshes[handle] = mesh; }
   public:
+    LightSet lightset;
     ResourceManager();
     GLuint getTexture(const char* handle) const { return textures.at(handle); }
     DefaultShader* getDefaultShader() const { return defaultShader; }
@@ -26,8 +28,15 @@ class ResourceManager {
 
 ResourceManager::ResourceManager()
 {
-  defaultShader = new DefaultShader();
-  normalMappedShader = new NormalMappedShader();
+  lightset[0].color = Vector3(1,0,0);
+  lightset[0].brightness = 100;
+  lightset[0].position.y = 10;
+
+  lightset[1].color = Vector3(0,0,1);
+  lightset[1].brightness = 100;
+  lightset[1].position.y = 10;
+  defaultShader = new DefaultShader(&lightset);
+  normalMappedShader = new NormalMappedShader(&lightset);
   loadTexture("floor", "textures/texture.jpg");
   loadTexture("white", "textures/white.png");
   loadTexture("wall", "textures/wall.jpg");

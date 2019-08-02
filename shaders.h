@@ -9,6 +9,7 @@
 #include "keyboard.h"
 #include "camera.h"
 #include "exceptions.h"
+#include "light.h"
 
 #define NUM_LIGHTS 10
 
@@ -78,18 +79,20 @@ inline static GLuint GenerateProgram(GLuint vs, GLuint fs)
 
 class DefaultShader
 {
-public:
+private:
+  const LightSet* lightset;
   GLint vPos, vNormal, vUV, uMvp, uCamera, uCamPos;
   std::array<GLint, 10> uLightsCol;
   std::array<GLint, 10> uLightsPos;
   GLuint program;
-  DefaultShader();
+public:
+  DefaultShader(const LightSet* lights);
 
   void prepare(GLuint vbo, GLuint nbo, GLuint uvo) const;
   void bind(const Camera* camera, Matrix4 mvp, GLuint tex) const;
 };
 
-DefaultShader::DefaultShader()
+DefaultShader::DefaultShader(const LightSet* lights) : lightset(lights)
 {
   logDebug("Initializing shader");
   GLuint vs = CompileShaderF(GL_VERTEX_SHADER, "shaders/default_shader_vs.c");
@@ -137,18 +140,11 @@ void DefaultShader::bind(const Camera* camera, Matrix4 mvp, GLuint tex) const
    mvp.unpack(u_mvp);
 
    glUseProgram(program);
+   lightset->sendToShader(uLightsPos, uLightsCol);
+
 
    glActiveTexture(GL_TEXTURE0);
    glBindTexture(GL_TEXTURE_2D, tex);
-
-   glUniform3f(uLightsPos[0], 0, 5, -20);
-   glUniform3f(uLightsCol[0], 200, 200, 300);
-
-   glUniform3f(uLightsPos[1], 0, 5, 20);
-   glUniform3f(uLightsCol[1], 400, 100, 100);
-
-   glUniform3f(uLightsPos[2], 0, 30, 0);
-   glUniform3f(uLightsCol[2], 10, 150, 10);
 
    glUniform3f(uCamPos, camera->pos.x, camera->pos.y, camera->pos.z);
    glUniformMatrix4fv(uCamera, 1, GL_FALSE, (const GLfloat*)m_camera);
@@ -157,18 +153,20 @@ void DefaultShader::bind(const Camera* camera, Matrix4 mvp, GLuint tex) const
 
 class NormalMappedShader
 {
-public:
+private:
   GLint vPos, vNormal, vUV, vTangent, vBiTangent, uMvp, uCamera, uCamPos, uTex, uNormalTex;
   std::array<GLint, 10> uLightsCol;
   std::array<GLint, 10> uLightsPos;
   GLuint program;
-  NormalMappedShader();
+  const LightSet* lights;
+public:
+  NormalMappedShader(const LightSet* lights);
 
   void prepare(GLuint vbo, GLuint nbo, GLuint uvo, GLuint tbo, GLuint btbo) const;
   void bind(const Camera* camera, Matrix4 mvp, GLuint tex, GLuint n_tex) const;
 };
 
-NormalMappedShader::NormalMappedShader()
+NormalMappedShader::NormalMappedShader(const LightSet* lights) : lights(lights)
 {
   logDebug("Initializing shader");
 
@@ -229,6 +227,7 @@ void NormalMappedShader::bind(const Camera* camera, Matrix4 mvp, GLuint tex, GLu
    mvp.unpack(u_mvp);
 
    glUseProgram(program);
+   lights->sendToShader(uLightsPos, uLightsCol);
 
    glUniform1i(uTex, 0);
    glActiveTexture(GL_TEXTURE0);
@@ -237,6 +236,7 @@ void NormalMappedShader::bind(const Camera* camera, Matrix4 mvp, GLuint tex, GLu
    glActiveTexture(GL_TEXTURE1);
    glBindTexture(GL_TEXTURE_2D, n_tex);
 
+   /*
    glUniform3f(uLightsPos[0], 0, 5, -20);
    glUniform3f(uLightsCol[0], 200, 200, 300);
 
@@ -245,6 +245,7 @@ void NormalMappedShader::bind(const Camera* camera, Matrix4 mvp, GLuint tex, GLu
 
    glUniform3f(uLightsPos[2], 0, 30, 0);
    glUniform3f(uLightsCol[2], 10, 150, 10);
+   */
 
    glUniform3f(uCamPos, camera->pos.x, camera->pos.y, camera->pos.z);
    glUniformMatrix4fv(uCamera, 1, GL_FALSE, (const GLfloat*)m_camera);
