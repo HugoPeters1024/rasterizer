@@ -1,10 +1,13 @@
+#ifndef SHADERS_H
+#define SHADERS_H
 #include <array>
 #include <string>
 #include <sstream>
+#include <fstream>
 
+#include "logger.h"
 #include "keyboard.h"
 #include "camera.h"
-#include "abstract.h"
 #include "exceptions.h"
 
 #define NUM_LIGHTS 10
@@ -83,7 +86,7 @@ public:
   DefaultShader();
 
   void prepare(GLuint vbo, GLuint nbo, GLuint uvo) const;
-  void bind(const Camera* camera, mat4x4 &mvp, GLuint tex) const;
+  void bind(const Camera* camera, Matrix4 mvp, GLuint tex) const;
 };
 
 DefaultShader::DefaultShader()
@@ -127,10 +130,11 @@ void DefaultShader::prepare(GLuint vbo, GLuint nbo, GLuint uvo) const
    glEnableVertexAttribArray(vUV);
 }
 
-void DefaultShader::bind(const Camera* camera, mat4x4 &mvp, GLuint tex) const
+void DefaultShader::bind(const Camera* camera, Matrix4 mvp, GLuint tex) const
 {
-   mat4x4 m_camera;
+   mat4x4 m_camera, u_mvp;
    camera->getMatrix(m_camera);
+   mvp.unpack(u_mvp);
 
    glUseProgram(program);
 
@@ -148,7 +152,7 @@ void DefaultShader::bind(const Camera* camera, mat4x4 &mvp, GLuint tex) const
 
    glUniform3f(uCamPos, camera->pos[0], camera->pos[1], camera->pos[2]);
    glUniformMatrix4fv(uCamera, 1, GL_FALSE, (const GLfloat*)m_camera);
-   glUniformMatrix4fv(uMvp, 1, GL_FALSE, (const GLfloat*)mvp);
+   glUniformMatrix4fv(uMvp, 1, GL_FALSE, (const GLfloat*)u_mvp);
 }
 
 class NormalMappedShader
@@ -161,7 +165,7 @@ public:
   NormalMappedShader();
 
   void prepare(GLuint vbo, GLuint nbo, GLuint uvo, GLuint tbo, GLuint btbo) const;
-  void bind(const Camera* camera, mat4x4 &mvp, GLuint tex, GLuint n_tex) const;
+  void bind(const Camera* camera, Matrix4 mvp, GLuint tex, GLuint n_tex) const;
 };
 
 NormalMappedShader::NormalMappedShader()
@@ -218,10 +222,11 @@ void NormalMappedShader::prepare(GLuint vbo, GLuint nbo, GLuint uvo, GLuint tbo,
    glEnableVertexAttribArray(vBiTangent);
 }
 
-void NormalMappedShader::bind(const Camera* camera, mat4x4 &mvp, GLuint tex, GLuint n_tex) const
+void NormalMappedShader::bind(const Camera* camera, Matrix4 mvp, GLuint tex, GLuint n_tex) const
 {
-   mat4x4 m_camera;
+   mat4x4 m_camera, u_mvp;
    camera->getMatrix(m_camera);
+   mvp.unpack(u_mvp);
 
    glUseProgram(program);
 
@@ -243,6 +248,7 @@ void NormalMappedShader::bind(const Camera* camera, mat4x4 &mvp, GLuint tex, GLu
 
    glUniform3f(uCamPos, camera->pos[0], camera->pos[1], camera->pos[2]);
    glUniformMatrix4fv(uCamera, 1, GL_FALSE, (const GLfloat*)m_camera);
-   glUniformMatrix4fv(uMvp, 1, GL_FALSE, (const GLfloat*)mvp);
+   glUniformMatrix4fv(uMvp, 1, GL_FALSE, (const GLfloat*)u_mvp);
 }
 
+#endif

@@ -278,7 +278,7 @@ static inline void mat4x4_scale_aniso(mat4x4 M, mat4x4 a, float x, float y, floa
 	for(int i=0; i<4; ++i)
 		__LH_M4E(M,3,i) = __LH_M4E(a,3,i);
 }
-static inline void mat4x4_mul(mat4x4 M, mat4x4 a, mat4x4 b)
+static inline void mat4x4_mul(mat4x4 M, const mat4x4 a, const mat4x4 b)
 {
 	mat4x4 temp;
 	for(int c=0; c<4; ++c) for(int r=0; r<4; ++r) {

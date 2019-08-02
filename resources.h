@@ -5,18 +5,23 @@
 #include <map>
 
 #include "logger.h"
+#include "shaders.h"
+#include "mesh.h"
 
 class ResourceManager {
   private:
     std::map<std::string, GLuint> textures;
+    std::map<std::string, IMesh*> meshes;
     DefaultShader* defaultShader;
     NormalMappedShader* normalMappedShader;
     void loadTexture(const char* handle, const char* filename);
+    void loadMesh(const char* handle, IMesh* mesh) { meshes[handle] = mesh; }
   public:
     ResourceManager();
-    GLuint getTexture(const char* handle) const { return textures.at(handle); };
-    DefaultShader* getDefaultShader() const { return defaultShader; };
-    NormalMappedShader* getNormalMappedShader() const { return normalMappedShader; };
+    GLuint getTexture(const char* handle) const { return textures.at(handle); }
+    DefaultShader* getDefaultShader() const { return defaultShader; }
+    NormalMappedShader* getNormalMappedShader() const { return normalMappedShader; }
+    IMesh* getMesh(const char* handle) const { return meshes.at(handle); }
 };
 
 ResourceManager::ResourceManager()
@@ -27,6 +32,10 @@ ResourceManager::ResourceManager()
   loadTexture("white", "textures/white.png");
   loadTexture("wall", "textures/wall.jpg");
   loadTexture("wall_norm", "textures/wall_norm.jpg");
+  IMesh* player = new DefaultMesh(defaultShader, getTexture("white"), "male.obj");
+  IMesh* floor = new NormalMappedMesh(normalMappedShader, getTexture("wall"), getTexture("wall_norm"), "floor.obj");
+  loadMesh("floor", floor);
+  loadMesh("player", player);
 }
 
 

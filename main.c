@@ -12,6 +12,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+#include "gameobject.h"
 #include "utils.h"
 #include "logger.h"
 #include "application.h"

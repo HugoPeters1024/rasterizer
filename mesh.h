@@ -1,12 +1,17 @@
+#ifndef MESH_H
+#define MESH_H
 #include "linmath.h"
 #include "shaders.h"
-#include "resources.h"
 #include "linmath.h"
 #include "obj_loader.h"
 #include "keyboard.h"
 #include "camera.h"
-#include "abstract.h"
 
+class IMesh {
+  public:
+    virtual void draw(const Camera* camera, Matrix4 m) const = 0;
+    virtual void update(Keyboard* keyboard) = 0;
+};
 
 class DefaultMesh : public IMesh
 {
@@ -18,16 +23,16 @@ private:
 
 public:
   GLuint tex;
-  DefaultMesh(const ResourceManager* RM, const char* model);
-  void draw(const Camera* camera) const override;
+  DefaultMesh(DefaultShader* shader, GLuint tex, const char* model);
+  void draw(const Camera* camera, Matrix4 m) const override;
   void update(Keyboard* keyboard) override;
 };
 
-DefaultMesh::DefaultMesh(const ResourceManager* RM, const char* model) {
+DefaultMesh::DefaultMesh(DefaultShader* shader, GLuint tex, const char* model) {
   logDebug("Initializing Mesh");
 
-  tex = RM->getTexture("white");
-  shader = RM->getDefaultShader();
+  this->tex = tex;
+  this->shader = shader;
 
   auto obj = cObj(model);
   std::vector<float> vertices;
@@ -65,12 +70,10 @@ DefaultMesh::DefaultMesh(const ResourceManager* RM, const char* model) {
   logDebug("Done initializing mesh");
 }
 
-void DefaultMesh::draw(const Camera* camera) const
+void DefaultMesh::draw(const Camera* camera, Matrix4 m) const
 {
-   mat4x4 mvp;
-   getMvp(mvp);
    glBindVertexArray(vao);
-   shader->bind(camera, mvp, tex);
+   shader->bind(camera, m, tex);
    glDrawArrays(GL_TRIANGLES, 0, triangle_count);
    glBindVertexArray(0);
 }
@@ -89,23 +92,18 @@ private:
 
 public:
   GLuint tex, n_tex;
-  NormalMappedMesh(const ResourceManager* RM, const char* model);
-  void draw(const Camera* camera) const override;
+  NormalMappedMesh(NormalMappedShader* shader, GLuint tex, GLuint n_tex, const char* model);
+  void draw(const Camera* camera, Matrix4 m) const override;
   void update(Keyboard* keyboard) override;
 };
 
-NormalMappedMesh::NormalMappedMesh(const ResourceManager* RM, const char* model)
+NormalMappedMesh::NormalMappedMesh(NormalMappedShader* shader, GLuint tex, GLuint n_tex, const char* model)
 {
-  vec3_zero(position);
-  vec3_zero(rotation);
-  vec3_zero(anchor);
-
-  scale = 1;
   logDebug("Initializing Mesh");
 
-  tex = RM->getTexture("wall");
-  n_tex = RM->getTexture("wall_norm");
-  shader = RM->getNormalMappedShader();
+  this->tex = tex;
+  this->n_tex = n_tex;
+  this->shader = shader;
 
   auto obj = cObj(model);
   std::vector<float> vertices;
@@ -155,12 +153,10 @@ NormalMappedMesh::NormalMappedMesh(const ResourceManager* RM, const char* model)
   logDebug("Done initializing mesh");
 }
 
-void NormalMappedMesh::draw(const Camera* camera) const
+void NormalMappedMesh::draw(const Camera* camera, Matrix4 m) const
 {
-   mat4x4 mvp;
-   getMvp(mvp);
    glBindVertexArray(vao);
-   shader->bind(camera, mvp, tex, n_tex);
+   shader->bind(camera, m, tex, n_tex);
    glDrawArrays(GL_TRIANGLES, 0, triangle_count);
    glBindVertexArray(0);
 }
@@ -169,3 +165,4 @@ void NormalMappedMesh::update(Keyboard* keyboard)
 {
 }
 
+#endif

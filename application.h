@@ -14,9 +14,7 @@ class Application
 {
   private:
     ResourceManager* RM;
-    IMesh* person;
-    IMesh* stack;
-    IMesh* floor;
+    std::vector<IGameObject*> meshes;
     Camera* camera;
     float fov;
   public:
@@ -28,16 +26,20 @@ class Application
 void Application::init()
 {
   RM = new ResourceManager();
-  person = new DefaultMesh(RM, "male.obj");
-  stack = new DefaultMesh(RM, "stack.obj");
-  floor = new NormalMappedMesh(RM, "floor.obj");
-  floor->scale = 24;
-  stack->rotation[0] = 3.141592f / 2.0f;
-  stack->position[1] = 10;
-  person->rotation[1] = PI;
+  gameInit(RM);
+
   camera = new Camera(1.25f);
   camera->pos[1] = 10.5f;
   camera->pos[2] = -10.5f;
+
+  IMeshObject* floor = new Floor();
+  floor->scale = Vector3(15); 
+
+  IMeshObject* player = new Player();
+  player->rotation.y = PI;
+
+  meshes.push_back(floor);
+  meshes.push_back(player);
 }
 
 void Application::loop(int w, int h, Keyboard* keyboard)
@@ -45,18 +47,8 @@ void Application::loop(int w, int h, Keyboard* keyboard)
   float ratio = w / (float)h;
   camera->update(ratio, keyboard);
 
-  person->update(keyboard);
-
-  // Todo: pass camera pos to shader
-  person->draw(camera);
-  stack->draw(camera);
-  floor->draw(camera);
-  floor->scale+=0.01f;
-
-  stack->position[2] -= 0.005f;
-  stack->rotation[2] += 0.01f;
-  person->anchor[1] = -10;
-  person->rotation[1] += 0.02f;
+  for(IGameObject *mesh : meshes)
+    mesh->draw(camera);
 }
 
 bool Application::shouldClose() { return false; }
