@@ -32,11 +32,13 @@ void Application::init()
   camera->pos[1] = 10.5f;
   camera->pos[2] = -10.5f;
 
-  IMeshObject* floor = new Floor();
+  Floor* floor = new Floor();
   floor->scale = Vector3(15); 
 
-  IMeshObject* player = new Player();
+  Player* player = new Player();
   player->rotation.y = PI;
+  player->vel.y = 0.5f;
+  player->acc.y = -0.005f;
 
   meshes.push_back(floor);
   meshes.push_back(player);
@@ -47,6 +49,8 @@ void Application::loop(int w, int h, Keyboard* keyboard)
   float ratio = w / (float)h;
   camera->update(ratio, keyboard);
 
+  for(IGameObject *mesh : meshes)
+    mesh->update(keyboard);
   for(IGameObject *mesh : meshes)
     mesh->draw(camera);
 }
