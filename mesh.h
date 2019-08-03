@@ -8,8 +8,8 @@
 #include "camera.h"
 
 class IMesh {
-  public: virtual void draw(const Camera* camera, Matrix4 m, float texSize=1) const = 0;
-    virtual void update(Keyboard* keyboard) = 0;
+  public: 
+    virtual void draw(const Camera* camera, Matrix4 m, float texSize=1) const = 0;
 };
 
 class DefaultMesh : public IMesh
@@ -24,7 +24,6 @@ public:
   GLuint tex;
   DefaultMesh(DefaultShader* shader, GLuint tex, const char* model);
   void draw(const Camera* camera, Matrix4 m, float texSize=1) const override;
-  void update(Keyboard* keyboard) override;
 };
 
 DefaultMesh::DefaultMesh(DefaultShader* shader, GLuint tex, const char* model) {
@@ -77,10 +76,6 @@ void DefaultMesh::draw(const Camera* camera, Matrix4 m, float texSize) const
    glBindVertexArray(0);
 }
 
-void DefaultMesh::update(Keyboard* keyboard)
-{
-}
-
 class NormalMappedMesh : public IMesh
 {
 private:
@@ -93,7 +88,6 @@ public:
   GLuint tex, n_tex;
   NormalMappedMesh(NormalMappedShader* shader, GLuint tex, GLuint n_tex, const char* model);
   void draw(const Camera* camera, Matrix4 m, float texSize=1) const override;
-  void update(Keyboard* keyboard) override;
 };
 
 NormalMappedMesh::NormalMappedMesh(NormalMappedShader* shader, GLuint tex, GLuint n_tex, const char* model)
@@ -158,10 +152,6 @@ void NormalMappedMesh::draw(const Camera* camera, Matrix4 m, float texSize) cons
    shader->bind(camera, m, tex, n_tex, texSize);
    glDrawArrays(GL_TRIANGLES, 0, triangle_count);
    glBindVertexArray(0);
-}
-
-void NormalMappedMesh::update(Keyboard* keyboard)
-{
 }
 
 #endif

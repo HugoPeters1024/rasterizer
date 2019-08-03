@@ -35,16 +35,30 @@ void Application::init()
   camera->pos.z = -10.5f;
 
   Floor* floor = new Floor();
-  Floor* wall = new Floor();
-  wall->rotation.x = -PI / 2;
-  wall->position.z = 15;
-  wall->position.y = 15;
+  Floor* back = new Floor();
+  back->rotation.x = -PI / 2;
+  back->position.z = 15;
+  back->position.y = 15;
+
+  Floor* left = new Floor();
+  left->rotation.z = PI / 2;
+  left->position.y = 15;
+  left->position.x = 15;
+  left->rotation.x = PI /2;
+
+  Floor* right = new Floor();
+  right->rotation.z = -PI / 2;
+  right->position.x = -15;
+  right->position.y = 15;
+  right->rotation.x = PI /2;
 
   Player* player = new Player();
   player->rotation.y = PI;
 
+  meshes.push_back(back);
   meshes.push_back(floor);
-  meshes.push_back(wall);
+  meshes.push_back(left);
+  meshes.push_back(right);
   meshes.push_back(player);
 }
 
