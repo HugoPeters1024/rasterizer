@@ -8,6 +8,8 @@ class Camera
 {
 private:
    float fov;
+   float gravity;
+   Vector3 velocity;
    Matrix4 matrix;
    void calcMatrix(float ratio);
 
@@ -23,11 +25,23 @@ Camera::Camera(float fov)
 {
   viewDir = Vector3(0, 0, 1); 
   this->fov = fov;
+  gravity = 0.05f;
 }
 
 void Camera::update(float ratio, Keyboard* keyboard)
 {
-  float speed = 0.3f;
+  if (pos.y + velocity.y > 7) {
+    pos += velocity;
+    velocity.y -= gravity;
+  } else {
+    velocity.y = 0;
+  }
+
+  if (keyboard->isPressed(JUMP)) {
+      velocity.y += 1;
+  }
+
+  float speed = 0.5f;
   float rot_speed = 0.02f;
 
   Vector3 move_dir = Vector3(viewDir.x, 0, viewDir.z).normalize();
@@ -85,7 +99,7 @@ void Camera::calcMatrix(float screenRatio)
 
   phi = atan2(viewDir.y, sqrt(viewDir.x * viewDir.x + viewDir.z * viewDir.z));
 
-  Matrix4 p = Matrix4::FromPerspective(fov, screenRatio, 0.1f, 100.0f);
+  Matrix4 p = Matrix4::FromPerspective(fov, screenRatio, 0.1f, 1000.0f);
   Matrix4 t = Matrix4::FromTranslation(-pos);
   Matrix4 r = Matrix4::FromAxisRotations(phi, theta, 0);
   matrix = p * r * t;

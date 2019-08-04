@@ -288,7 +288,7 @@ static inline void mat4x4_mul(mat4x4 M, const mat4x4 a, const mat4x4 b)
 	}
 	mat4x4_dup(M, temp);
 }
-static inline void mat4x4_mul_vec4(vec4 r, mat4x4 M, vec4 v)
+static inline void mat4x4_mul_vec4(vec4 r, const mat4x4 M, const vec4 v)
 {
 	for(int j=0; j<4; ++j) {
 		r[j] = 0.f;
@@ -389,7 +389,7 @@ static inline void mat4x4_rotate_Z(mat4x4 Q, mat4x4 M, float angle)
 	};
 	mat4x4_mul(Q, M, R);
 }
-static inline void mat4x4_invert(mat4x4 T, mat4x4 M)
+static inline void mat4x4_invert(mat4x4 T, const mat4x4 M)
 {
 	float s[6];
 	float c[6];

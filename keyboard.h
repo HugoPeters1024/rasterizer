@@ -16,6 +16,8 @@ enum action {
   LOOK_DOWN,
   LOOK_LEFT,
   LOOK_RIGHT,
+
+  JUMP,
 };
 
 class Keyboard
@@ -28,12 +30,12 @@ class Keyboard
 
     void generateActionMap();
 
+  public:
+    Keyboard(GLFWwindow* window);
     // These methods suffer from this bug: https://github.com/glfw/glfw/issues/747
     // A fix is to be released in 3.3.0
     bool isPressed(action a) const; // Pressed in this tick
     bool isReleased(action a) const; // Released in this tick
-  public:
-    Keyboard(GLFWwindow* window);
 
     void swapBuffers();
     bool isDown(action a) const;  // Down at all
@@ -97,5 +99,7 @@ void Keyboard::generateActionMap()
   action_map[LOOK_DOWN]     = GLFW_KEY_DOWN;
   action_map[LOOK_LEFT]     = GLFW_KEY_LEFT;
   action_map[LOOK_RIGHT]    = GLFW_KEY_RIGHT;
+  
+  action_map[JUMP]          = GLFW_KEY_SPACE;
 }
 #endif

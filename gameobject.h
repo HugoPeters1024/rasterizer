@@ -12,6 +12,10 @@ public:
   virtual void draw(Camera* camera) const = 0;
 };
 
+class ISolid {
+  public:
+};
+
 class IMeshObject : public IGameObject {
 public:
   Vector3 position, rotation, anchor, scale;
@@ -24,13 +28,20 @@ protected:
     Matrix4 s = Matrix4::FromScale(scale);
     Matrix4 a1 = Matrix4::FromTranslation(anchor);
     Matrix4 a2 = Matrix4::FromTranslation(-anchor);
-    return t * s * a2 * r * a1;
+    return t * a2 * r * a1 * s;
   }
 };
 
-class Floor : public IMeshObject {
+class SolidMesh : public IMeshObject, public ISolid {
+  private:
+    AABB box;
+  public:
+    SolidMesh(float scale) : IMeshObject(15) {}
+};
+
+class Floor : public SolidMesh {
 public:
-  Floor() : IMeshObject(15) {}
+  Floor() : SolidMesh(15) {}
   static IMesh* mesh;
   void update(Keyboard* keyboard) override {};
   void draw(Camera* camera) const override {
