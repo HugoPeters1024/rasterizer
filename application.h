@@ -19,6 +19,7 @@ class Application
     Camera* camera;
     Floor* ramp;
     Floor* floor;
+    Player* player;
     float fov;
     float time;
   public:
@@ -58,9 +59,9 @@ void Application::init()
   ramp = new Floor();
   ramp->position.z = -30;
   ramp->anchor.z = -15;
-  ramp->rotation.x = PI / 4;
+  ramp->rotation.x = PI / 8;
 
-  Player* player = new Player();
+  player = new Player();
   player->rotation.y = PI;
 
   meshes.push_back(back);
@@ -73,38 +74,25 @@ void Application::init()
 
 void Application::loop(int w, int h, Keyboard* keyboard)
 {
-  /*
-  OBB box1 = OBB(Vector3(0, 0, 0), Vector3(1));
-  OBB box2 = OBB(Vector3(0, 0, 0), Vector3(1));
-  Matrix4 m1 = Matrix4::FromAxisRotations(0, 0, time);
-  Matrix4 m2 = Matrix4::FromTranslation(-2.8, 0, 0) * m1;
-  box2.update(m2);
-  box1.update(m1);
-
-
-  Line p = box1.project(Vector3(1, 0, 0));
-  Line p2 = box2.project(Vector3(1, 0, 0));
-  printf("projection1 from %f to %f, l = %f\n", p.a.x, p.b.x, abs(p.a.x - p.b.x));
-  printf("projection1 from %f to %f\n", p2.a.x, p2.b.x);
-  bool yes = box1.intersects(box2);
-  yes = p.parallel_overlap(p2);
-  */
-
-
   OBB box = OBB(Vector3(0, 0, 0), Vector3(1));
   Matrix4 m = Matrix4::FromTranslation(0, 5-time/2, 0);
   box.update(m);
-  bool yes = floor->boundary.intersects(box);
+  player->position.z -= 0.08f;
 
-  printf("floor: \n");
-  for(const Vector3 &v : floor->boundary.getPoints())
-    v.print();
-  printf("---------\n");
+  for(IGameObject *mesh : meshes)
+    mesh->update(keyboard);
+  for(IGameObject *mesh : meshes)
+    mesh->draw(camera);
 
-  printf("box: \n");
-  for(const Vector3 &v : box.getPoints())
-    v.print();
-  printf("---------\n");
+  bool yes = false;
+
+  int i = 0;
+  while (ramp->intersects(player) && i < 100) {
+    player->position.y += 0.01f;
+    player->updateBoundary();
+    i++;
+    yes = ramp->intersects(player);
+  }
 
   printf("intersection: %s\n", yes ? "yes" : "no");
 
@@ -115,11 +103,6 @@ void Application::loop(int w, int h, Keyboard* keyboard)
   RM->lightset[1].position.z = -11 * cos(time);
   float ratio = w / (float)h;
   camera->update(ratio, keyboard);
-
-  for(IGameObject *mesh : meshes)
-    mesh->update(keyboard);
-  for(IGameObject *mesh : meshes)
-    mesh->draw(camera);
 }
 
 bool Application::shouldClose() { return false; }

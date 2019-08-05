@@ -17,9 +17,13 @@ class ISolid {
   protected:
     void updateBoundary(Matrix4 m) { boundary.update(m); }
   public:
+    virtual void updateBoundary() = 0; 
     OBB boundary;
     ISolid() : boundary(OBB(Vector3(0), Vector3(0))) {}
     ISolid(OBB boundary) : boundary(boundary) {}
+    bool intersects(const ISolid* o) {
+      return boundary.intersects(o->boundary);
+    }
 };
 
 class IMeshObject : public IGameObject {
@@ -41,6 +45,7 @@ protected:
 class SolidMesh : public IMeshObject, public ISolid {
   public:
     SolidMesh(float scale, OBB boundary) : IMeshObject(scale), ISolid(boundary) {}
+    void updateBoundary() override { ISolid::updateBoundary(getMvp()); }
 };
 
 class Floor : public SolidMesh {
@@ -48,7 +53,7 @@ public:
   Floor() : SolidMesh(15, OBB(Vector3(0), Vector3(1, 0.01, 1))) {}
   static IMesh* mesh;
   void update(Keyboard* keyboard) override {
-    updateBoundary(getMvp());
+    updateBoundary();
   };
   void draw(Camera* camera) const override {
     mesh->draw(camera, getMvp(), 0.8f);
@@ -56,10 +61,12 @@ public:
 };
 IMesh* Floor::mesh;
 
-class Player : public IMeshObject {
+class Player : public SolidMesh {
 public:
+  Player() : SolidMesh(1, OBB(Vector3(0, 8, 0), Vector3(0.5, 8, 0.5))) {}
   static IMesh* mesh;
   void update(Keyboard* keyboard) override {
+    updateBoundary();
   };
   void draw(Camera* camera) const override {
     mesh->draw(camera, getMvp());

@@ -35,6 +35,10 @@ ResourceManager::ResourceManager()
   lightset[1].color = Vector3(0,1,1);
   lightset[1].brightness = 100;
   lightset[1].position.y = 10;
+
+  lightset[2].color = Vector3(1, 1, 1);
+  lightset[2].brightness = 300;
+  lightset[2].position = Vector3(0, 30, -30);
   defaultShader = new DefaultShader(&lightset);
   normalMappedShader = new NormalMappedShader(&lightset);
   loadTexture("floor", "textures/texture.jpg");
