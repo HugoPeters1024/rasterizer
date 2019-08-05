@@ -65,8 +65,7 @@ int main(int argc, char** argv) {
   // Enable debugging
   glEnable(GL_DEBUG_OUTPUT);
 	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-	glDebugMessageCallback(GLDEBUGPROC(gl_debug_output), nullptr);
-	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+	glDebugMessageCallback(GLDEBUGPROC(gl_debug_output), nullptr); glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 #endif
 
   // Print info

@@ -166,88 +166,16 @@ public:
     return false;
   }
 }; 
-class BoundingBox {
-public:
-  Vector3 pos;
-  Vector3 d;
-  bool intersects(const BoundingBox &o) const {
-    if (pos.x + d.x/2 <= o.pos.x - o.d.x/2 || pos.x - d.x/2 >= o.pos.x + o.d.x/2) return false;
-    if (pos.y + d.y/2 <= o.pos.y - o.d.y/2 || pos.y - d.y/2 >= o.pos.y + o.d.y/2) return false;
-    if (pos.z + d.z/2 <= o.pos.z - o.d.z/2 || pos.z - d.z/2 >= o.pos.z + o.d.z/2) return false;
-    return true;
-  }
-  BoundingBox transformed(Matrix4 m) const {
-    BoundingBox box;
-    box.pos = (m * Vector4(pos, 1)).xyz();
-    box.d = (m * Vector4(d, 0)).xyz();
-  }
-};
-
-class AABB {
-public:
-  Vector3 lb, rt;
-  bool intersects(const Ray &ray, float* t) const {
-    *t = 0;
-
-    Vector3 dirfrac;
-    Vector3 ndir = ray.dir;
-    dirfrac.x = 1.0f / ndir.x;
-    dirfrac.y = 1.0f / ndir.y;
-    dirfrac.z = 1.0f / ndir.z;
-    // lb is the corner of AABB with minimal coordinates - left bottom, rt is maximal corner
-    // ray.origin is origin of ray
-    float t1 = (lb.x - ray.origin.x)*dirfrac.x;
-    float t2 = (rt.x - ray.origin.x)*dirfrac.x;
-    float t3 = (lb.y - ray.origin.y)*dirfrac.y;
-    float t4 = (rt.y - ray.origin.y)*dirfrac.y;
-    float t5 = (lb.z - ray.origin.z)*dirfrac.z;
-    float t6 = (rt.z - ray.origin.z)*dirfrac.z;
-
-    float tmin = std::max(std::max(std::min(t1, t2), std::min(t3, t4)), std::min(t5, t6));
-    float tmax = std::min(std::min(std::max(t1, t2), std::max(t3, t4)), std::max(t5, t6));
-
-    // if tmax < 0, ray (line) is intersecting AABB, but the whole AABB is behind us
-    if (tmax < 0)
-    {
-        *t = tmax;
-        return false;
-    }
-
-    // if tmin > tmax, ray doesn't intersect AABB
-    if (tmin > tmax)
-    {
-        *t = tmax;
-        return false;
-    }
-
-    *t = tmin;
-
-    return true;
-  }
-  bool intersects(const AABB &o) const {
-    Ray ray1 = Ray((lb + rt) / 2, Vector3(rt.x - lb.x, 0, 0));
-    Ray ray2 = Ray((lb + rt) / 2, Vector3(0, rt.y - lb.y, 0));
-    Ray ray3 = Ray((lb + rt) / 2, Vector3(0, 0, rt.z - lb.z));
-    float t;
-    bool r1 = o.intersects(ray1, &t);
-    printf("ray1 to (%f, %f, %f), getting t=%f, so isect? = %s\n", ray1.dir.x, ray1.dir.y, ray1.dir.z, t, r1 ? "yes" : "no");
-    bool r2 = o.intersects(ray2, &t);
-    printf("ray2 to (%f, %f, %f), getting t=%f, so isect? = %s\n", ray2.dir.x, ray2.dir.y, ray2.dir.z, t, r2 ? "yes" : "no");
-    bool r3 = o.intersects(ray3, &t);
-    printf("ray3 to (%f, %f, %f), getting t=%f, so isect? = %s\n", ray3.dir.x, ray3.dir.y, ray3.dir.z, t, r3 ? "yes" : "no");
-    return r1 || r2 || r3;
-  }
-};
 
 struct Line {
   Vector3 a, b;
   Line() {}
   Line(Vector3 a, Vector3 b) : a(a), b(b) {}
-  bool parallel_overlap(const Line &o) {
+  bool parallel_overlap(const Line &o) const {
       // assumes the lines are parallel
-      return on_line(o.a) || on_line(o.b);
+      return on_line(o.a) || on_line(o.b) || o.on_line(a) || o.on_line(b);
   }
-  bool on_line(const Vector3 &c) {
+  bool on_line(const Vector3 &c) const {
     float AC = (a - c).length();
     float CB = (c - b).length();
     float AB = (a - b).length();

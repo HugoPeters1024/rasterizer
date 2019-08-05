@@ -18,6 +18,7 @@ class Application
     std::vector<IGameObject*> meshes;
     Camera* camera;
     Floor* ramp;
+    Floor* floor;
     float fov;
     float time;
   public:
@@ -36,7 +37,7 @@ void Application::init()
   camera->pos.y = 10.5f;
   camera->pos.z = -10.5f;
 
-  Floor* floor = new Floor();
+  floor = new Floor();
   Floor* back = new Floor();
   back->rotation.x = -PI / 2;
   back->position.z = 15;
@@ -73,43 +74,6 @@ void Application::init()
 void Application::loop(int w, int h, Keyboard* keyboard)
 {
   /*
-  Plane plane;
-  plane.normal = Vector3(time/100, 1, 0).normalize();
-  plane.tangent = Vector3(80, 0, 0);
-  plane.bitangent = Vector3(0, 0, 8);
-
-  printf("plane at (%f, %f, %f)\n", plane.pos.x, plane.pos.y, plane.pos.z);
-
-  Ray ray;
-  ray.origin = Vector3(0, 4, 0);
-  ray.dir = Vector3(1, -1, 0).normalize();
-  ray.length = 100;
-
-  bool yes = plane.intersects(ray);
-  */
-
-  /*
-  AABB box;
-  box.lb = Vector3(-1);
-  box.rt = Vector3(1);
-
-  AABB box2;
-  box2.lb = Vector3(-3);
-  box2.rt = Vector3(-0.9);
-
-  Ray ray;
-  ray.origin = box2.lb;
-  ray.dir = Vector3(6, 0, 0);
-  //ray.origin = Vector3(-time/6, 4, 0);
-  //ray.dir = Vector3(5, -5, 0).normalize();
-
-
-  float l = 0;
-  bool yes = box2.intersects(box);
-  printf("intersection: %s | t: %f\n", yes ? "yes" : "no", l);
-  */
-
-
   OBB box1 = OBB(Vector3(0, 0, 0), Vector3(1));
   OBB box2 = OBB(Vector3(0, 0, 0), Vector3(1));
   Matrix4 m1 = Matrix4::FromAxisRotations(0, 0, time);
@@ -124,6 +88,23 @@ void Application::loop(int w, int h, Keyboard* keyboard)
   printf("projection1 from %f to %f\n", p2.a.x, p2.b.x);
   bool yes = box1.intersects(box2);
   yes = p.parallel_overlap(p2);
+  */
+
+
+  OBB box = OBB(Vector3(0, 0, 0), Vector3(1));
+  Matrix4 m = Matrix4::FromTranslation(0, 5-time/2, 0);
+  box.update(m);
+  bool yes = floor->boundary.intersects(box);
+
+  printf("floor: \n");
+  for(const Vector3 &v : floor->boundary.getPoints())
+    v.print();
+  printf("---------\n");
+
+  printf("box: \n");
+  for(const Vector3 &v : box.getPoints())
+    v.print();
+  printf("---------\n");
 
   printf("intersection: %s\n", yes ? "yes" : "no");
 

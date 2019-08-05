@@ -13,7 +13,13 @@ public:
 };
 
 class ISolid {
+  private:
+  protected:
+    void updateBoundary(Matrix4 m) { boundary.update(m); }
   public:
+    OBB boundary;
+    ISolid() : boundary(OBB(Vector3(0), Vector3(0))) {}
+    ISolid(OBB boundary) : boundary(boundary) {}
 };
 
 class IMeshObject : public IGameObject {
@@ -33,17 +39,17 @@ protected:
 };
 
 class SolidMesh : public IMeshObject, public ISolid {
-  private:
-    AABB box;
   public:
-    SolidMesh(float scale) : IMeshObject(15) {}
+    SolidMesh(float scale, OBB boundary) : IMeshObject(scale), ISolid(boundary) {}
 };
 
 class Floor : public SolidMesh {
 public:
-  Floor() : SolidMesh(15) {}
+  Floor() : SolidMesh(15, OBB(Vector3(0), Vector3(1, 0.01, 1))) {}
   static IMesh* mesh;
-  void update(Keyboard* keyboard) override {};
+  void update(Keyboard* keyboard) override {
+    updateBoundary(getMvp());
+  };
   void draw(Camera* camera) const override {
     mesh->draw(camera, getMvp(), 0.8f);
   };
