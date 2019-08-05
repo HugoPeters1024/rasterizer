@@ -12,6 +12,7 @@ class IMesh {
     virtual void draw(const Camera* camera, Matrix4 m, float texSize=1) const = 0;
 };
 
+
 class DefaultMesh : public IMesh
 {
 private:

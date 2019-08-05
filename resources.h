@@ -47,8 +47,10 @@ ResourceManager::ResourceManager()
   loadTexture("wall_norm", "textures/wall_norm.jpg");
   IMesh* player = new DefaultMesh(defaultShader, getTexture("white"), "models/player.obj");
   IMesh* floor = new NormalMappedMesh(normalMappedShader, getTexture("wall"), getTexture("wall_norm"), "models/floor.obj");
+  IMesh* cube = new DefaultMesh(defaultShader, getTexture("white"), "models/cube.obj");
   loadMesh("floor", floor);
   loadMesh("player", player);
+  loadMesh("cube", cube);
 }
 
 

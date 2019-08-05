@@ -5,6 +5,7 @@
 #include "keyboard.h"
 #include "camera.h"
 #include "resources.h"
+#include "physics.h"
 
 class IGameObject {
 public:
@@ -14,16 +15,18 @@ public:
 
 class ISolid {
   private:
+    OBB boundary;
   protected:
     void updateBoundary(Matrix4 m) { boundary.update(m); }
   public:
+    virtual void onCollision(const ISolid* other) {}
     virtual void updateBoundary() = 0; 
-    OBB boundary;
     ISolid() : boundary(OBB(Vector3(0), Vector3(0))) {}
     ISolid(OBB boundary) : boundary(boundary) {}
     bool intersects(const ISolid* o) {
       return boundary.intersects(o->boundary);
     }
+    void drawBoundary(const Camera* cam, Matrix4 m) const { boundary.draw(cam, m); }
 };
 
 class IMeshObject : public IGameObject {
@@ -52,6 +55,8 @@ class Floor : public SolidMesh {
 public:
   Floor() : SolidMesh(15, OBB(Vector3(0), Vector3(1, 0.01, 1))) {}
   static IMesh* mesh;
+  void onCollision(const ISolid* other) override {
+  }
   void update(Keyboard* keyboard) override {
     updateBoundary();
   };
@@ -62,14 +67,23 @@ public:
 IMesh* Floor::mesh;
 
 class Player : public SolidMesh {
+private:
 public:
-  Player() : SolidMesh(1, OBB(Vector3(0, 8, 0), Vector3(0.5, 8, 0.5))) {}
+  Vector3 velocity;
+  Player() : SolidMesh(1, OBB(Vector3(0, 9, 0), Vector3(2, 9, 2))) {}
   static IMesh* mesh;
+  void onCollision(const ISolid* other) override {
+    velocity = -velocity;
+  }
   void update(Keyboard* keyboard) override {
+    position += velocity;
+    velocity.y -= 0.01f;
     updateBoundary();
   };
   void draw(Camera* camera) const override {
-    mesh->draw(camera, getMvp());
+    Matrix4 mvp = getMvp();
+    mesh->draw(camera, mvp);
+    drawBoundary(camera, mvp);
   };
 };
 IMesh* Player::mesh;
@@ -78,6 +92,7 @@ void gameInit(ResourceManager* RM)
 {
   Floor::mesh = RM->getMesh("floor");
   Player::mesh = RM->getMesh("player");
+  OBB::mesh = RM->getMesh("cube");
 }
 
 #endif

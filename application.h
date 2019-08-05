@@ -15,7 +15,8 @@ class Application
 {
   private:
     ResourceManager* RM;
-    std::vector<IGameObject*> meshes;
+    std::vector<IGameObject*> objects;
+    std::vector<ISolid*> solids;
     Camera* camera;
     Floor* ramp;
     Floor* floor;
@@ -63,38 +64,51 @@ void Application::init()
 
   player = new Player();
   player->rotation.y = PI;
+  player->position.y += 2;
 
-  meshes.push_back(back);
-  meshes.push_back(floor);
-  meshes.push_back(left);
-  meshes.push_back(right);
-  meshes.push_back(ramp);
-  meshes.push_back(player);
+  objects.push_back(back);
+  objects.push_back(floor);
+  objects.push_back(left);
+  objects.push_back(right);
+  objects.push_back(ramp);
+  objects.push_back(player);
+
+  solids.push_back(back);
+  solids.push_back(floor);
+  solids.push_back(left);
+  solids.push_back(right);
+  solids.push_back(ramp);
+  solids.push_back(player);
+  player->velocity.y = 0.7;
+  player->velocity.x = 0.1;
 }
 
 void Application::loop(int w, int h, Keyboard* keyboard)
 {
-  OBB box = OBB(Vector3(0, 0, 0), Vector3(1));
-  Matrix4 m = Matrix4::FromTranslation(0, 5-time/2, 0);
-  box.update(m);
-  player->position.z -= 0.08f;
+  //player->position.z -= 0.08f;
 
-  for(IGameObject *mesh : meshes)
-    mesh->update(keyboard);
-  for(IGameObject *mesh : meshes)
-    mesh->draw(camera);
+  for(IGameObject *obj : objects)
+    obj->update(keyboard);
 
-  bool yes = false;
+  for(ISolid *obj : solids)
+    for(ISolid *other : solids) {
+      if (obj == other) continue;
+      if (obj->intersects(other)) {
+        obj->onCollision(other);
+      }
+    }
 
-  int i = 0;
+  for(IGameObject *obj : objects)
+    obj->draw(camera);
+
+  /*
+  int i=0;
   while (ramp->intersects(player) && i < 100) {
     player->position.y += 0.01f;
     player->updateBoundary();
     i++;
-    yes = ramp->intersects(player);
   }
-
-  printf("intersection: %s\n", yes ? "yes" : "no");
+  */
 
   time+=0.03f;
   RM->lightset[0].position.x = 11 * sin(time);
