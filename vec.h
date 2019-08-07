@@ -223,6 +223,14 @@ struct Line {
       *length = o.b -a;
       return true;
     }
+    if (a > o.a && b < o.b) {
+      *length = a - b;
+      return true;
+    }
+    if (a < o.a && b > o.b) {
+      *length = o.a - o.b;
+      return true;
+    }
     return false;
   }
   bool on_line(const Vector3 &p) const {

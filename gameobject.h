@@ -53,7 +53,7 @@ class SolidMesh : public IMeshObject, public ISolid {
 
 class Floor : public SolidMesh {
 public:
-  Floor() : SolidMesh(15, OBB(Vector3(0), Vector3(1, 0.01, 1))) {}
+  Floor() : SolidMesh(15, OBB(Vector3(0), Vector3(1, 0.1, 1))) {}
   static IMesh* mesh;
   void onCollision(const ISolid* other, Vector3 normal, float dis) override {
   }
@@ -73,12 +73,8 @@ public:
   Player() : SolidMesh(1, OBB(Vector3(0, 9, 0), Vector3(2, 9, 2))) {}
   static IMesh* mesh;
   void onCollision(const ISolid* other, Vector3 normal, float dis) override {
-    printf("dot is %f\nmiminum distance is %f\n", Vector3::dot(velocity.normalized(), normal), dis);
-    normal.print();
     position += normal * dis;
     velocity = Vector3::reflect(velocity, normal) * 0.97;
-    //normal.print();
-    //velocity = normal;
     updateBoundary();
   }
   void update(Keyboard* keyboard) override {
@@ -94,6 +90,27 @@ public:
   };
 };
 IMesh* Player::mesh;
+
+class CameraObject : public Camera, public ISolid {
+public:
+  CameraObject(float fov) : Camera(fov), ISolid(OBB(Vector3(0,0,0), Vector3(2,6, 2))) {}
+  void updateBoundary() override {
+    Matrix4 t = Matrix4::FromTranslation(pos);
+    ISolid::updateBoundary(t);
+  }
+  void update(float ratio, const Keyboard* keyboard) override {
+    Camera::update(ratio, keyboard);
+    velocity.y -= gravity;
+    pos += velocity;
+    updateBoundary();
+  }
+  void onCollision(const ISolid* other, Vector3 normal, float dis) override {
+    (normal*dis).print();
+    pos += normal * dis;
+    velocity = Vector3(0);
+    updateBoundary();
+  }
+};
 
 void gameInit(ResourceManager* RM)
 {
