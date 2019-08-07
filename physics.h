@@ -1,3 +1,4 @@
+#include <limits>
 #include "mesh.h"
 
 class OBB {
@@ -58,7 +59,8 @@ public:
     ret[2] = (vs[4] - vs[0]).normalize();
     return ret;
   }
-  bool intersects(const OBB &o) const {
+  // TODO return some sort of normal, for bouncing of
+  bool intersects(const OBB &o, Vector3* normal = 0) const {
      auto nleft  = o.getNormals();
      auto nright = getNormals();
      Vector3 axis[6];
@@ -68,11 +70,18 @@ public:
      axis[3] = nright[0];
      axis[4] = nright[1];
      axis[5] = nright[2];
+     float min_dist = std::numeric_limits<float>::infinity();
      for(const Vector3 &ax : axis) {
        Line p1 = project(ax);
        Line p2 = o.project(ax);
        if (!p1.parallel_overlap(p2)) return false;
+       float dist = p1.sq_dist(p2);
+       if (dist < min_dist) {
+         min_dist = dist;
+         *normal = ax;
+       }
      }
+     normal->normalize();
      return true;
   }
 

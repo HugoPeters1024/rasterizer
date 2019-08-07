@@ -19,12 +19,12 @@ class ISolid {
   protected:
     void updateBoundary(Matrix4 m) { boundary.update(m); }
   public:
-    virtual void onCollision(const ISolid* other) {}
+    virtual void onCollision(const ISolid* other, Vector3 normal) {}
     virtual void updateBoundary() = 0; 
     ISolid() : boundary(OBB(Vector3(0), Vector3(0))) {}
     ISolid(OBB boundary) : boundary(boundary) {}
-    bool intersects(const ISolid* o) {
-      return boundary.intersects(o->boundary);
+    bool intersects(const ISolid* o, Vector3* normal = 0) {
+      return boundary.intersects(o->boundary, normal);
     }
     void drawBoundary(const Camera* cam, Matrix4 m) const { boundary.draw(cam, m); }
 };
@@ -55,14 +55,14 @@ class Floor : public SolidMesh {
 public:
   Floor() : SolidMesh(15, OBB(Vector3(0), Vector3(1, 0.01, 1))) {}
   static IMesh* mesh;
-  void onCollision(const ISolid* other) override {
+  void onCollision(const ISolid* other, Vector3 normal) override {
   }
   void update(Keyboard* keyboard) override {
     updateBoundary();
-  };
+  }
   void draw(Camera* camera) const override {
     mesh->draw(camera, getMvp(), 0.8f);
-  };
+  }
 };
 IMesh* Floor::mesh;
 
@@ -72,12 +72,18 @@ public:
   Vector3 velocity;
   Player() : SolidMesh(1, OBB(Vector3(0, 9, 0), Vector3(2, 9, 2))) {}
   static IMesh* mesh;
-  void onCollision(const ISolid* other) override {
-    velocity = -velocity;
+  void onCollision(const ISolid* other, Vector3 normal) override {
+    normal.print();
+    //position += normal;
+    velocity = Vector3::reflect(velocity, normal) * 0.97;
+    //normal.print();
+    //velocity = normal;
+    updateBoundary();
   }
   void update(Keyboard* keyboard) override {
     position += velocity;
-    velocity.y -= 0.01f;
+    velocity.y -= 0.004f;
+    velocity.z += 0.0001f;
     updateBoundary();
   };
   void draw(Camera* camera) const override {

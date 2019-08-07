@@ -2,6 +2,7 @@
 #define VEC_H
 
 #include <cmath>
+#include <exception>
 #include <array>
 #include "linmath.h"
 
@@ -47,6 +48,7 @@ public:
   float sq_length() const { return dot(*this, *this); }
   Vector3 operator * (const Vector3 &o) const { return Vector3(x*o.x, y*o.y, z*o.z); } 
   Vector3 operator * (float s) const    { return Vector3(x*s, y*s, z*s);       }
+  Vector3& operator *= (float s) { x*=s; y*=s; z*=s; return *this; }
   Vector3 operator / (const Vector3 &o) const { return Vector3(x/o.x, y/o.y, z/o.z); }
   Vector3 operator + (const Vector3 &o) const { return Vector3(x+o.x, y+o.y, z+o.z); } 
   Vector3& operator += (const Vector3 &o) { x += o.x; y += o.y; z += o.z; return *this; }
@@ -54,6 +56,14 @@ public:
   Vector3& operator -= (const Vector3 &o) { x -= o.x; y -= o.y; z -= o.z; return *this; }
   Vector3 operator - () const { return Vector3(-x, -y, -z); }
   void print() const { printf("(%f, %f, %f)\n", x, y, z); }
+
+  static Vector3 reflect(const Vector3 &a, const Vector3 &n) {
+    vec3 _a = { a.x, a.y, a.z };
+    vec3 _n = { n.x, n.y, n.z };
+    vec3 r;
+    vec3_reflect(r, _a, _n);
+    return Vector3(r[0], r[1], r[2]);
+  }
 };
 
 //Commutative mapping
@@ -190,6 +200,24 @@ struct Line {
       else
         b = n;
     }
+  }
+  float sq_dist(const Line &o) const {
+     // The distance we are interested in is the distance between the
+     // shortest overlapping points. These can be identified because they
+     // are the complentary pair of points to the pair that produces the longest
+     // distance.
+     float AA = (a - o.a).sq_length();
+     float BB = (a - o.b).sq_length();
+     float AB = (a - o.b).sq_length();
+     float BA = (b - o.a).sq_length();
+     // Find longest distance
+     float max = std::max(std::max(AA, BB), std::max(AB, BA));
+     // Return inverse
+     if (AA == max) return BB;
+     if (BB == max) return AA;
+     if (AB == max) return BA;
+     if (BA == max) return AB;
+     throw 5;
   }
 };
 

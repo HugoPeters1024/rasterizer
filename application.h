@@ -62,6 +62,10 @@ void Application::init()
   ramp->anchor.z = -15;
   ramp->rotation.x = PI / 8;
 
+  auto xramp = new Floor();
+  xramp->position.z = -60;
+  xramp->position.y = 15;
+
   player = new Player();
   player->rotation.y = PI;
   player->position.y += 2;
@@ -71,6 +75,7 @@ void Application::init()
   objects.push_back(left);
   objects.push_back(right);
   objects.push_back(ramp);
+  objects.push_back(xramp);
   objects.push_back(player);
 
   solids.push_back(back);
@@ -78,25 +83,45 @@ void Application::init()
   solids.push_back(left);
   solids.push_back(right);
   solids.push_back(ramp);
+  solids.push_back(xramp);
   solids.push_back(player);
-  player->velocity.y = 0.7;
-  player->velocity.x = 0.1;
+  player->velocity.y = 0.3;
+  player->velocity.z = -0.1;
 }
 
 void Application::loop(int w, int h, Keyboard* keyboard)
 {
-  //player->position.z -= 0.08f;
-
+  player->position.z -= 0.01f;
   for(IGameObject *obj : objects)
     obj->update(keyboard);
 
+  /*
   for(ISolid *obj : solids)
     for(ISolid *other : solids) {
       if (obj == other) continue;
-      if (obj->intersects(other)) {
-        obj->onCollision(other);
+      Vector3 normal;
+      if (obj->intersects(other, &normal)) {
+        if (normal.sq_length() - 1 > 1e-6) return;
+        normal.print();
+        obj->onCollision(other, normal);
       }
     }
+    */
+
+  /*
+  Vector3 normal;
+  if (player->intersects(ramp, &normal)) {
+    normal.print();
+  }
+  */
+
+  for(ISolid *obj : solids) {
+    Vector3 normal;
+    if (obj == player) continue;
+    if (player->intersects(obj, &normal)) {
+      player->onCollision(obj, normal);
+    }
+  }
 
   for(IGameObject *obj : objects)
     obj->draw(camera);
