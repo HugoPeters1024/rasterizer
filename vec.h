@@ -3,7 +3,9 @@
 
 #include <cmath>
 #include <exception>
+#include <limits>
 #include <array>
+#include "utils.h"
 #include "linmath.h"
 
 class Vector2 {
@@ -46,10 +48,19 @@ public:
   }
   static float dot(const Vector3 &a, const Vector3 &b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
   float sq_length() const { return dot(*this, *this); }
+  float largestComponent() const { 
+    if (x >= y && x >= z) return x;
+    if (y >= x && y >= z) return y;
+    if (z >= x && z >= y) return z; 
+  }
   Vector3 operator * (const Vector3 &o) const { return Vector3(x*o.x, y*o.y, z*o.z); } 
   Vector3 operator * (float s) const    { return Vector3(x*s, y*s, z*s);       }
   Vector3& operator *= (float s) { x*=s; y*=s; z*=s; return *this; }
-  Vector3 operator / (const Vector3 &o) const { return Vector3(x/o.x, y/o.y, z/o.z); }
+  Vector3 operator / (const Vector3 &o) const { 
+    float nx = o.x == 0 ? 0 : x/o.x;
+    float ny = o.y == 0 ? 0 : y/o.y;
+    float nz = o.z == 0 ? 0 : z/o.z;
+    return Vector3(nx, ny, nz); }
   Vector3 operator + (const Vector3 &o) const { return Vector3(x+o.x, y+o.y, z+o.z); } 
   Vector3& operator += (const Vector3 &o) { x += o.x; y += o.y; z += o.z; return *this; }
   Vector3 operator - (const Vector3 &o) const { return Vector3(x-o.x, y-o.y, z-o.z); }
@@ -178,46 +189,52 @@ public:
 }; 
 
 struct Line {
-  Vector3 a, b;
-  Line() {}
-  Line(Vector3 a, Vector3 b) : a(a), b(b) {}
-  bool parallel_overlap(const Line &o) const {
-      // assumes the lines are parallel
-      return on_line(o.a) || on_line(o.b) || o.on_line(a) || o.on_line(b);
+  Vector3 dir;
+  float a, b;
+  Line() : dir(Vector3(0)) {
+    a =  std::numeric_limits<float>::infinity();
+    b = -std::numeric_limits<float>::infinity();
   }
-  bool on_line(const Vector3 &c) const {
-    float AC = (a - c).length();
-    float CB = (c - b).length();
-    float AB = (a - b).length();
-    // tolerance
-    return fabs(AC + CB - AB) < 1e-4; 
+  Line(Vector3 dir) : dir(dir) {
+    a =  std::numeric_limits<float>::infinity();
+    b = -std::numeric_limits<float>::infinity();
   }
-  void consume(const Vector3 &n) {
-    if ((b-n).sq_length() > (b-a).sq_length() || (a-n).sq_length() > (a-b).sq_length())
-    { 
-      if ((b-n).sq_length() > (a-n).sq_length())
-        a = n; 
-      else
-        b = n;
+  Line(Vector3 dir, float a, float b) : dir(dir) {
+    if (a < b) { this->a = a, this->b = b; }
+    else       { this->a = b; this->b = a; }
+  }
+  float point_to_vec(const Vector3 &p) const {
+    // Assumes p is co-linear with the line
+    float dis = p.length();
+    // regain direction looking the wrong way
+    if (signum(p.x) != signum(dir.x) || 
+        signum(dir.y) != signum(p.y) || 
+        signum(dir.z) != signum(p.z))
+        dis = -dis;
+    return dis;
+  }
+  bool parallel_overlap(const Line &o, float* length) const {
+    *length = 0;
+    if (b >= o.a && b <= o.b) {
+      *length = o.a - b;
+      return true;
     }
+    if (a <= o.b && a >= o.a) {
+      *length = o.b -a;
+      return true;
+    }
+    return false;
   }
-  float sq_dist(const Line &o) const {
-     // The distance we are interested in is the distance between the
-     // shortest overlapping points. These can be identified because they
-     // are the complentary pair of points to the pair that produces the longest
-     // distance.
-     float AA = (a - o.a).sq_length();
-     float BB = (a - o.b).sq_length();
-     float AB = (a - o.b).sq_length();
-     float BA = (b - o.a).sq_length();
-     // Find longest distance
-     float max = std::max(std::max(AA, BB), std::max(AB, BA));
-     // Return inverse
-     if (AA == max) return BB;
-     if (BB == max) return AA;
-     if (AB == max) return BA;
-     if (BA == max) return AB;
-     throw 5;
+  bool on_line(const Vector3 &p) const {
+    // Assumes p is co-linear with the line
+    float dis = point_to_vec(p);
+    return a <= dis && b >= dis;
+  }
+  void consume(const Vector3 &p) {
+    // assumes p is co-linear with the line
+    float dis = point_to_vec(p);
+    if (dis < a) a = dis;
+    if (dis > b) b = dis;
   }
 };
 

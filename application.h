@@ -64,7 +64,7 @@ void Application::init()
 
   auto xramp = new Floor();
   xramp->position.z = -60;
-  xramp->position.y = 15;
+  xramp->position.y = 0;
 
   player = new Player();
   player->rotation.y = PI;
@@ -85,13 +85,13 @@ void Application::init()
   solids.push_back(ramp);
   solids.push_back(xramp);
   solids.push_back(player);
-  player->velocity.y = 0.3;
-  player->velocity.z = -0.1;
+  player->velocity.y = 0;
+  player->velocity.z = 0.1;
 }
 
 void Application::loop(int w, int h, Keyboard* keyboard)
 {
-  player->position.z -= 0.01f;
+  player->velocity.z -= 0.0015f;
   for(IGameObject *obj : objects)
     obj->update(keyboard);
 
@@ -115,11 +115,55 @@ void Application::loop(int w, int h, Keyboard* keyboard)
   }
   */
 
+  /*
+  float yy = 5 - time / 5;
+  OBB box1 = OBB(Vector3(0), Vector3(1));
+  OBB box2 = OBB(Vector3(0), Vector3(1));
+  Matrix4 t = Matrix4::FromTranslation(0, yy, 0);
+  Matrix4 r = Matrix4::FromAxisRotations(0, 0, time/8);
+  box2.update(t);
+  Vector3 normal;
+  float dist;
+  bool yes = box1.intersects(box2, &normal, &dist);
+  if (yes) normal.print();
+  */
+
+  //auto l1 = box1.project(Vector3(0, 0, -1));
+  //auto l2 = box1.project(Vector3(0, 0, -1));
+  //printf("box1 from %f to %f\n", l1.a, l1.b);
+ // printf("box2 from %f to %f\n", l2.a, l2.b);
+
+  //box1.draw(camera);
+  //box2.draw(camera);
+
+  /*
+  Line l = Line(Vector3(0, 0, -1));
+  printf("line from %f to %f\n", l.a, l.b);
+  l.consume(Vector3(0, 0, 1));
+  printf("line from %f to %f\n", l.a, l.b);
+  l.consume(Vector3(0, 0, -1));
+  printf("line from %f to %f\n", l.a, l.b);
+  printf("------\n");
+  */
+
+
+
+  /*
+  auto l1 = Line(Vector3(1, 0, 0), 0, 3);
+  auto l2 = Line(Vector3(1, 0, 0), -1+time/10, 0.01+time/10);
+  float overlap2;
+  l1.parallel_overlap(l2, &overlap2);
+  printf("(%f -- %f)  and (%f -- %f)\n", l1.a, l1.b, l2.a, l2.b);
+  printf("overlap2  %f\n", overlap2);
+  */
+
+
   for(ISolid *obj : solids) {
     Vector3 normal;
+    float dis;
     if (obj == player) continue;
-    if (player->intersects(obj, &normal)) {
-      player->onCollision(obj, normal);
+    if (player->intersects(obj, &normal, &dis)) {
+      player->onCollision(obj, normal, dis);
     }
   }
 

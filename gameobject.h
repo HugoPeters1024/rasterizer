@@ -19,14 +19,14 @@ class ISolid {
   protected:
     void updateBoundary(Matrix4 m) { boundary.update(m); }
   public:
-    virtual void onCollision(const ISolid* other, Vector3 normal) {}
+    virtual void onCollision(const ISolid* other, Vector3 normal, float dis) {}
     virtual void updateBoundary() = 0; 
     ISolid() : boundary(OBB(Vector3(0), Vector3(0))) {}
     ISolid(OBB boundary) : boundary(boundary) {}
-    bool intersects(const ISolid* o, Vector3* normal = 0) {
-      return boundary.intersects(o->boundary, normal);
+    bool intersects(const ISolid* o, Vector3* normal, float* min_dis) {
+      return boundary.intersects(o->boundary, normal, min_dis);
     }
-    void drawBoundary(const Camera* cam, Matrix4 m) const { boundary.draw(cam, m); }
+    void drawBoundary(const Camera* cam) const { boundary.draw(cam); }
 };
 
 class IMeshObject : public IGameObject {
@@ -55,7 +55,7 @@ class Floor : public SolidMesh {
 public:
   Floor() : SolidMesh(15, OBB(Vector3(0), Vector3(1, 0.01, 1))) {}
   static IMesh* mesh;
-  void onCollision(const ISolid* other, Vector3 normal) override {
+  void onCollision(const ISolid* other, Vector3 normal, float dis) override {
   }
   void update(Keyboard* keyboard) override {
     updateBoundary();
@@ -72,24 +72,25 @@ public:
   Vector3 velocity;
   Player() : SolidMesh(1, OBB(Vector3(0, 9, 0), Vector3(2, 9, 2))) {}
   static IMesh* mesh;
-  void onCollision(const ISolid* other, Vector3 normal) override {
+  void onCollision(const ISolid* other, Vector3 normal, float dis) override {
+    printf("dot is %f\nmiminum distance is %f\n", Vector3::dot(velocity.normalized(), normal), dis);
     normal.print();
-    //position += normal;
+    position += normal * dis;
     velocity = Vector3::reflect(velocity, normal) * 0.97;
     //normal.print();
     //velocity = normal;
     updateBoundary();
   }
   void update(Keyboard* keyboard) override {
-    position += velocity;
     velocity.y -= 0.004f;
     velocity.z += 0.0001f;
+    position += velocity;
     updateBoundary();
   };
   void draw(Camera* camera) const override {
     Matrix4 mvp = getMvp();
     mesh->draw(camera, mvp);
-    drawBoundary(camera, mvp);
+    drawBoundary(camera);
   };
 };
 IMesh* Player::mesh;

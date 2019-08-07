@@ -8,16 +8,14 @@ private:
 public: std::array<Vector3, 8> points;
   Matrix4 m;
   Line project(const Vector3 &ax) const {
-    Line line;
-    bool first = true;
+    Line line = Line(ax);
     for(const Vector3 &v : getPoints()) {
       Vector3 pv = ax * Vector3::dot(v, ax);
-      if (first) { line.a = pv; line.b = pv; first = false; } else
       line.consume(pv);
     }
     return line;
   }
-  void draw(const Camera* cam, Matrix4 m) const { 
+  void draw(const Camera* cam) const { 
     Matrix4 s = Matrix4::FromScale(dimensions * 2);
     Matrix4 p = Matrix4::FromTranslation(pos);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -59,8 +57,7 @@ public:
     ret[2] = (vs[4] - vs[0]).normalize();
     return ret;
   }
-  // TODO return some sort of normal, for bouncing of
-  bool intersects(const OBB &o, Vector3* normal = 0) const {
+  bool intersects(const OBB &o, Vector3* normal, float* min_dist) const {
      auto nleft  = o.getNormals();
      auto nright = getNormals();
      Vector3 axis[6];
@@ -70,17 +67,18 @@ public:
      axis[3] = nright[0];
      axis[4] = nright[1];
      axis[5] = nright[2];
-     float min_dist = std::numeric_limits<float>::infinity();
+     *min_dist = std::numeric_limits<float>::infinity();
      for(const Vector3 &ax : axis) {
        Line p1 = project(ax);
        Line p2 = o.project(ax);
-       if (!p1.parallel_overlap(p2)) return false;
-       float dist = p1.sq_dist(p2);
-       if (dist < min_dist) {
-         min_dist = dist;
+       float dist = 0;
+       if (!p1.parallel_overlap(p2, &dist)) return false;
+       if (abs(dist) < abs(*min_dist)) {
+         *min_dist = dist;
          *normal = ax;
        }
      }
+     // The normal may be pointing the wrong way, beware
      normal->normalize();
      return true;
   }
