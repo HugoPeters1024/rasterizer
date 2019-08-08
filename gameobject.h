@@ -93,7 +93,7 @@ IMesh* Player::mesh;
 
 class CameraObject : public Camera, public ISolid {
 public:
-  CameraObject(float fov) : Camera(fov), ISolid(OBB(Vector3(0,0,0), Vector3(2,6, 2))) {}
+  CameraObject(float fov) : Camera(fov), ISolid(OBB(Vector3(0,0,0), Vector3(1.5, 15, 1.5))) {}
   void updateBoundary() override {
     Matrix4 t = Matrix4::FromTranslation(pos);
     ISolid::updateBoundary(t);
@@ -107,6 +107,7 @@ public:
   void onCollision(const ISolid* other, Vector3 normal, float dis) override {
     (normal*dis).print();
     pos += normal * dis;
+    //velocity *= 0.97;
     velocity = Vector3(0);
     updateBoundary();
   }

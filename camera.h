@@ -25,13 +25,13 @@ Camera::Camera(float fov)
 {
   viewDir = Vector3(0, 0, 1); 
   this->fov = fov;
-  gravity = 0.006f;
+  gravity = 0.02f;
 }
 
 void Camera::update(float ratio, const Keyboard* keyboard)
 {
   if (keyboard->isPressed(JUMP)) {
-      velocity.y += 0.2;
+      velocity.y += 0.5;
   }
 
   float speed = 0.5f;

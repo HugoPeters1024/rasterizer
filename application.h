@@ -20,6 +20,7 @@ class Application
     CameraObject* camera;
     Floor* ramp;
     Floor* floor;
+    Floor* xramp;
     Player* player;
     float time;
   public:
@@ -35,7 +36,7 @@ void Application::init()
   gameInit(RM);
 
   camera = new CameraObject(1.25f);
-  camera->pos.y = 10.5f;
+  camera->pos.y = 17.5f;
   camera->pos.z = -15.5f;
 
   floor = new Floor();
@@ -61,7 +62,7 @@ void Application::init()
   ramp->anchor.z = -15;
   ramp->rotation.x = PI / 8;
 
-  auto xramp = new Floor();
+  xramp = new Floor();
   xramp->position.z = -60;
   xramp->position.y = 0;
 
@@ -83,16 +84,17 @@ void Application::init()
   solids.push_back(right);
   solids.push_back(ramp);
   solids.push_back(xramp);
-  solids.push_back(player);
   solids.push_back(camera);
+  solids.push_back(player);
   player->velocity.y = 0;
   player->velocity.z = 0.1;
 }
 
 void Application::loop(int w, int h, Keyboard* keyboard)
 {
-  ramp->rotation.x += 0.001f;
-  ramp->updateBoundary();
+  xramp->position.y += 0.1f;
+  if (xramp->position.y > 50)
+    xramp->position.y = 0;
   float ratio = w / (float)h;
   camera->update(ratio, keyboard);
   camera->drawBoundary(camera);
