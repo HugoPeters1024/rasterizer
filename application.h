@@ -60,7 +60,7 @@ void Application::init()
   ramp = new Floor();
   ramp->position.z = -30;
   ramp->anchor.z = -15;
-  ramp->rotation.x = PI / 8;
+  ramp->rotation.x = PI / 6;
 
   xramp = new Floor();
   xramp->position.z = -60;
@@ -86,8 +86,6 @@ void Application::init()
   solids.push_back(xramp);
   solids.push_back(camera);
   solids.push_back(player);
-  player->velocity.y = 0;
-  player->velocity.z = 0.1;
 }
 
 void Application::loop(int w, int h, Keyboard* keyboard)
@@ -95,11 +93,11 @@ void Application::loop(int w, int h, Keyboard* keyboard)
   xramp->position.y += 0.1f;
   if (xramp->position.y > 50)
     xramp->position.y = 0;
+  xramp->rotation.x += 0.01f;
   float ratio = w / (float)h;
   camera->update(ratio, keyboard);
   camera->drawBoundary(camera);
 
-  player->velocity.z -= 0.0015f;
   for(IGameObject *obj : objects)
     obj->update(keyboard);
 

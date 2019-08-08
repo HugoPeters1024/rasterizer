@@ -74,7 +74,7 @@ public:
   static IMesh* mesh;
   void onCollision(const ISolid* other, Vector3 normal, float dis) override {
     position += normal * dis;
-    velocity = Vector3::reflect(velocity, normal) * 0.97;
+    velocity = Vector3::reflect(velocity, normal) * 0.37;
     updateBoundary();
   }
   void update(Keyboard* keyboard) override {
@@ -93,6 +93,7 @@ IMesh* Player::mesh;
 
 class CameraObject : public Camera, public ISolid {
 public:
+  Vector3 velocity;
   CameraObject(float fov) : Camera(fov), ISolid(OBB(Vector3(0,0,0), Vector3(1.5, 15, 1.5))) {}
   void updateBoundary() override {
     Matrix4 t = Matrix4::FromTranslation(pos);
@@ -100,15 +101,18 @@ public:
   }
   void update(float ratio, const Keyboard* keyboard) override {
     Camera::update(ratio, keyboard);
-    velocity.y -= gravity;
+    if (keyboard->isPressed(JUMP)) {
+        velocity.y += 0.5;
+    }
+    velocity.y -= 0.05f;
     pos += velocity;
     updateBoundary();
   }
   void onCollision(const ISolid* other, Vector3 normal, float dis) override {
     (normal*dis).print();
     pos += normal * dis;
-    //velocity *= 0.97;
-    velocity = Vector3(0);
+    velocity = (velocity + normal * dis) / 2;
+    velocity.print();
     updateBoundary();
   }
 };

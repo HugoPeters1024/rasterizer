@@ -12,8 +12,6 @@ private:
    void calcMatrix(float ratio);
 
 public:
-   float gravity;
-   Vector3 velocity;
    Vector3 pos, viewDir;
    Camera(float fov);
    virtual void update(float ratio, const Keyboard* keyboard);
@@ -25,15 +23,10 @@ Camera::Camera(float fov)
 {
   viewDir = Vector3(0, 0, 1); 
   this->fov = fov;
-  gravity = 0.02f;
 }
 
 void Camera::update(float ratio, const Keyboard* keyboard)
 {
-  if (keyboard->isPressed(JUMP)) {
-      velocity.y += 0.5;
-  }
-
   float speed = 0.5f;
   float rot_speed = 0.02f;
 
